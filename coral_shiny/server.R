@@ -48,8 +48,9 @@ shinyServer(function(input, output, session) {
         ) %>% 
       addLabelOnlyMarkers(~lon, ~lat, 
         label = ~paste0(Station), 
-        labelOptions = labelOptions(noHide = T, direction = 'top', textOnly = T)
-        )
+        labelOptions = labelOptions(noHide = T, direction = 'top', textOnly = T, textsize = '12px', 
+          offset = c(0, -9))
+      )
       
   })
 
@@ -70,7 +71,7 @@ shinyServer(function(input, output, session) {
       )
     
   })
-    
+  
   output$abuplot <- renderPlot({
     
     toplo <- dat() %>% 
@@ -84,6 +85,9 @@ shinyServer(function(input, output, session) {
       ylab('Coral counts at each station') + 
       theme(legend.position = "none", 
         axis.text.x = element_text(size = 8), 
+        axis.text.y = element_text(size = 12), 
+        axis.title.y = element_text(size = 14),
+        axis.title.x = element_text(size = 14),
         axis.line.x = element_line(), 
         axis.line.y = element_line(), 
         axis.ticks.x = element_line(),
@@ -110,20 +114,38 @@ shinyServer(function(input, output, session) {
     selectedstation <<- NULL
   })
   
+  # change selected station to red
+  observe({
+    
+    # check if its been clicked
+    validate(need(selectedstation, FALSE)) 
+
+    toplo2 <- filter(dat(), Station %in% selectedstation)
+    
+    leafletProxy("mapstat", data = toplo2) %>%
+      clearGroup(group = 'selstat') %>% 
+      addCircleMarkers(radius = 10, weight = 0, fillOpacity = 0.7, color = 'red', group = 'selstat'
+        ) 
+
+  })   
+  
+  # species plots on site click
   output$staplot <- renderPlot({
     
     # check if its been clicked
     validate(need(selectedstation, FALSE)) 
 
-    toplo2 <- filter(crl_abu, Station %in% selectedstation) %>% 
+    toplo3 <- filter(crl_abu, Station %in% selectedstation) %>% 
       gather('Species', 'Count', -Station, -lat, -lon, -Richness) 
-    p <- ggplot(toplo2, aes(x = Species, y = Count, fill = Count)) + 
+    p <- ggplot(toplo3, aes(x = Species, y = Count)) + 
       geom_bar(stat = 'identity') + 
+      scale_y_continuous('Coral counts') + 
       theme_minimal() +
-      scale_fill_gradientn(colours = brewer.pal(11, 'Spectral')) +
       theme(legend.position = "none", 
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8), 
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 9), 
         axis.title.x = element_blank(),
+        axis.text.y = element_text(size = 12), 
+        axis.title.y = element_text(size = 14),
         axis.line.x = element_line(), 
         axis.line.y = element_line(), 
         axis.ticks.x = element_line(),
