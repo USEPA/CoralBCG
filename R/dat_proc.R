@@ -40,43 +40,4 @@ crl_met <- read_excel(
     lon = `Longitude (decimal deg)`
   )
 
-######
-# 
-
-crl_abu <- read_excel(
-  'ignore/StonyCoral_PR2011_FNov062013.xlsx', 
-  sheet = 'abundance', 
-  col_types = c('date', 'numeric', 'text', 'text', 'text', 'numeric', rep('blank', 8))
-  ) %>% 
-  select(-`Data Collector`) %>% 
-  filter(
-    !Taxon %in% 'UNKNOWN'
-  ) %>% 
-  rename(
-    abu = `Count of Taxon`
-  ) %>% 
-  select(-`Coral code`, -Date) %>% 
-  na.omit %>% 
-  spread(Taxon, abu, fill = 0) %>% 
-  mutate(
-    Richness = apply(., 1, function(x) sum(x != 0) - 1)
-    ) %>% 
-  left_join(., crl_met, by = 'Station')
-  
-ext <- make_bbox(crl_met$lon, crl_met$lat, f = 0.2)
-ext[2] <- ext[2] - 0.3
-ext[4] <- ext[4] + 0.5
-map <- get_stamenmap(ext, zoom = 10, maptype = "toner-lite")
-
-ggmap(map) + 
-  geom_point(data = crl_abu, aes(x = lon, y = lat, size = `Agaricia fragilis`, fill = `Agaricia fragilis`), pch = 21, alpha = 0.8) + 
-  scale_fill_distiller(palette = 'Spectral', direction = 1, guide = 'legend') +
-  scale_size(range = c(0.5, 8), guide = 'legend') + 
-  theme_bw() + 
-  theme(
-    axis.title.x = element_blank(), 
-    axis.title.y = element_blank()
-  )
-
-
 
