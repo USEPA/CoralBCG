@@ -1,9 +1,10 @@
 ######
-# 2011 Puerto Rico data, EPA
+# coral data processing
 
 library(tidyverse)
 library(readxl)
 library(ggmap)
+soure('R/funcs.R')
 
 # ######
 # # get coral morph conversion factor table from pdf doc
@@ -31,7 +32,7 @@ library(ggmap)
 # save(conv, file = 'data/conv.RData', compress = 'xz')
 
 ######
-# stony coral data
+# USEPA PR 2011 data
 
 # transect data
 crl_srv <- read_excel(
@@ -65,4 +66,35 @@ crl_met <- read_excel(
     lon = `Longitude (decimal deg)`
   )
 
+######
+# 2014 NOAA PR data
+
+# transect data
+crl_dem <- read.csv(
+  'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
+  stringsAsFactors = F
+  ) %>%
+  select(station_code, latitude, longitude, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased)
+
+# relative abundance
+rel_abu <- select(crl_dem, station_code, species_name, ColonyID) %>% 
+  group_by(station_code) %>% 
+  mutate(
+    abu = length(unique(ColonyID))
+  ) %>% 
+  group_by(station_code, species_name, abu) %>% 
+  summarise(
+    spp_abu = length(species_name)
+  ) %>% 
+  ungroup %>% 
+  mutate( 
+    rel_abu = spp_abu/abu
+  )
+
+# coral cover 
+csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, Height) %>% 
+  group_by(station_code, species_name, ColonyID) %>% 
+  mutate(
+    csa = ifelse(MaxDiam != -1, est_3d(species_name, Height, MaxDiam, PerpDiam), -1)
+  )
 
