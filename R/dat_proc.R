@@ -1,9 +1,34 @@
 ######
-# 2011 Puerto Rico data
+# 2011 Puerto Rico data, EPA
 
 library(tidyverse)
 library(readxl)
 library(ggmap)
+
+# ######
+# # get coral morph conversion factor table from pdf doc
+# # colony surface area
+# library(pdftools)
+# 
+# pth <- 'M:/docs/coral_bcg/ignore/Santavy etal 2012 field manual.pdf'
+# raw <- pdf_text(pth)
+# conv <- grep('^Table [3]-[2]', raw, value = T) %>% 
+#   strsplit(., '\\r') %>% 
+#   .[[1]] %>% 
+#   .[5:50] %>% 
+#   gsub('\\n', '', .) %>% 
+#   strsplit(., '\\s\\s\\s*') %>% 
+#   do.call('rbind', .) %>% 
+#   data.frame(stringsAsFactors = F) %>% 
+#   rename(
+#     'spec' = X1, 
+#     'code' = X2, 
+#     'conv' = X3
+#   ) %>% 
+#   mutate(
+#     conv = as.numeric(conv)
+#   )
+# save(conv, file = 'data/conv.RData', compress = 'xz')
 
 ######
 # stony coral data
