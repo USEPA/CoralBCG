@@ -98,3 +98,5 @@ csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, 
     csa = ifelse(MaxDiam != -1, est_3d(species_name, Height, MaxDiam, PerpDiam), -1)
   )
 
+# figure out what to do with these... sponges? generic hemisphere?
+# arrange(unique(csa[is.na(csa$csa), "species_name"]), species_name)
