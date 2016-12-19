@@ -3,7 +3,6 @@
 
 library(tidyverse)
 library(readxl)
-library(ggmap)
 soure('R/funcs.R')
 
 # ######
@@ -96,7 +95,59 @@ csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, 
   group_by(station_code, species_name, ColonyID) %>% 
   mutate(
     csa = ifelse(MaxDiam != -1, est_3d(species_name, Height, MaxDiam, PerpDiam), -1)
-  )
+  ) %>% 
+  ungroup %>% 
+  select(station_code, species_name, ColonyID, csa)
 
-# figure out what to do with these... sponges? generic hemisphere?
-# arrange(unique(csa[is.na(csa$csa), "species_name"]), species_name)
+# coral live surface area, colony averages by site
+csa_live <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
+  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
+  group_by(station_code, species_name, ColonyID) %>% 
+  mutate(LCSA = ifelse(csa != -1, csa * (1 - sum(MortOld + MortNew) / 100), -1)) %>% 
+  group_by(station_code, ColonyID) %>% 
+  summarise(LCSA = sum(pmax(0, LCSA)) / sum(pmax(0, csa))) %>% 
+  group_by(station_code) %>% 
+  summarise(LCSA = sum(LCSA) / length(unique(ColonyID)))
+
+# mortality in large reef building genera
+# coral live surface area, colony averages by site
+lrg_mort <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
+  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
+  group_by(station_code, species_name, ColonyID) %>% 
+  filter(csa != -1) %>% 
+  mutate(
+    LCSA = csa * (1 - MortNew / 100),
+    lrg_sp = ifelse(grepl('^Acropora|^Colpophyllia|^Dendrogyra|^Orbicella|^Pseudodiploria', species_name), 1, 0)
+    ) %>% 
+  group_by(station_code, lrg_sp) %>% 
+  summarize(
+    mort = mean(LCSA/csa)
+  ) %>% 
+  ungroup %>% 
+  complete(station_code, lrg_sp) %>% 
+  filter(lrg_sp == 1)
+  
+
+# frequency distribution of colony sizes
+col_sz <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
+  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
+  group_by(station_code, ColonyID) %>% 
+  summarise(
+    rec = ifelse(any(csa < 0), 1, 0),
+    csa = sum(pmax(0, csa))
+  ) %>% 
+  group_by(station_code)
+tmp <- summarise(col_sz, tot = log(sum(csa, na.rm = T))) %>% 
+  .$tot %>% 
+  order
+col_sz <- ungroup(col_sz) %>% 
+  mutate(
+    station_code = as.character(station_code),
+    station_code = factor(station_code, levels = unique(station_code)[tmp])
+    ) %>% 
+  filter(!is.na(csa))
+
+ggplot(col_sz, aes(x = station_code, y = csa, colour = factor(ColonyID))) + 
+  geom_bar(stat = 'identity') + 
+  # scale_y_continuous(trans = 'log') +
+  theme(legend.position = 'none')

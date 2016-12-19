@@ -8,6 +8,12 @@ output:
     toc_float: true
 author: "Marcus W. Beck, beck.marcus@epa.gov"
 ---
+```{r warning = F, message = F}
+library(tidyverse)
+library(readxl)
+library(plotly)
+source('R/funcs.R')
+```
 
 ### Files
 
@@ -19,7 +25,172 @@ author: "Marcus W. Beck, beck.marcus@epa.gov"
 
 ### Indicator estimates
 
-Relative abundance for each species was counts of a species dividied by total abundance (number of unique colonies), this was verified as always being less than or equal to 1
+#### Stony coral
 
-Coral surface area from equations 
+*Percent live cover* at each station was estimated as the average live cover of all colonies at a site.  The live cover of a colony was the sum of the estimated surface area of all species in a colony that was reported as percent live (reciprocal of the sum of new and old percent mortality).  Surface area of an individual was estimated from the reported diameter and height using one of three approaches: log-linear surface area equations, standard surface area equation using conversion factors, and surface area of a sphere having the same diameter.  The last equation was used only if equations in the first two options were unavailable for a species. The diameter for species with different values for maximum and perpendicular reported diameters was converted to a single value that was a circle with the same area as an ellipse based on the two diameters.  
+
+```{r cache = T}
+# transect data
+crl_dem <- read.csv(
+  'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
+  stringsAsFactors = F
+  ) %>%
+  select(station_code, latitude, longitude, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased)
+
+# coral cover 
+csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, Height) %>% 
+  group_by(station_code, species_name, ColonyID) %>% 
+  mutate(
+    csa = ifelse(MaxDiam != -1, est_3d(species_name, Height, MaxDiam, PerpDiam), -1)
+  ) %>% 
+  ungroup %>% 
+  select(station_code, species_name, ColonyID, csa)
+
+# coral live surface area
+csa_live <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
+  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
+  group_by(station_code, species_name, ColonyID) %>% 
+  mutate(LCSA = ifelse(csa != -1, csa * (1 - sum(MortOld + MortNew) / 100), -1)) %>% 
+  group_by(station_code, ColonyID) %>% 
+  summarise(LCSA = sum(pmax(0, LCSA)) / sum(pmax(0, csa))) %>% 
+  group_by(station_code) %>% 
+  summarise(LCSA = sum(LCSA) / length(unique(ColonyID)))
+```
+
+```{r warning = F, message = F, fig.height = 4, fig.width = 8}
+mythm <- theme_minimal() +
+  theme(
+    legend.position = 'top', 
+    legend.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+    axis.ticks.x = element_line(),
+    axis.ticks.y = element_line(),
+    axis.ticks.length = unit(.1, "cm"), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank()
+  )  
+
+p <- ggplot(csa_live, aes(x = LCSA)) + 
+  geom_histogram() + 
+  mythm
+ggplotly()
+```
+
+```{r warning = F, message = F, fig.height = 4, fig.width = 8}
+mythm <- theme_minimal() +
+  theme(
+    legend.position = 'top', 
+    legend.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+    axis.ticks.x = element_line(),
+    axis.ticks.y = element_line(),
+    axis.ticks.length = unit(.1, "cm"), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.text.x = element_text(size = 6)
+  )  
+toplo <- filter(csa_live, !is.na(LCSA)) %>% 
+  arrange(LCSA) %>% 
+  mutate(station_code = factor(station_code, levels = as.character(station_code)))
+p <- ggplot(toplo, aes(x = station_code, y = LCSA)) +
+  geom_bar(stat = 'identity') +
+  mythm + 
+  scale_x_discrete('Station')
+ggplotly()
+```
+
+*Mortality of large reef-building genera* (*Acropora*, *Colpophyllia*, *Dendrogrya*, *Orbicella*, *Pseudodiploria*) was estimated as the average recent mortality at the site for all individuals within the genera. This value is reported as the average percent live surface area and was estimated similarly as above, except the estimates are average of all individual and not per colony.  Note that some sites did not include these genera.  
+
+```{r cache = T, message = F}
+# coral live surface area, colony averages by site
+lrg_mort<- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
+  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
+  group_by(station_code, species_name, ColonyID) %>% 
+  filter(csa != -1) %>% 
+  mutate(
+    LCSA = csa * (1 - MortNew / 100),
+    lrg_sp = ifelse(grepl('^Acropora|^Colpophyllia|^Dendrogyra|^Orbicella|^Pseudodiploria', species_name), 1, 0)
+    ) %>% 
+  group_by(station_code, lrg_sp) %>% 
+  summarize(
+    mort = mean(LCSA/csa)
+  ) %>% 
+  ungroup %>% 
+  complete(station_code, lrg_sp) %>% 
+  filter(lrg_sp == 1)
+```
+
+```{r warning = F, message = F, fig.height = 4, fig.width = 8}
+mythm <- theme_minimal() +
+  theme(
+    legend.position = 'top', 
+    legend.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+    axis.ticks.x = element_line(),
+    axis.ticks.y = element_line(),
+    axis.ticks.length = unit(.1, "cm"), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank()
+  )  
+
+p <- ggplot(lrg_mort, aes(x = mort)) + 
+  geom_histogram() + 
+  scale_x_continuous('average LCSA for large genera') +
+  mythm
+ggplotly()
+```
+
+```{r warning = F, message = F, fig.height = 4, fig.width = 8}
+mythm <- theme_minimal() +
+  theme(
+    legend.position = 'top', 
+    legend.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+    axis.ticks.x = element_line(),
+    axis.ticks.y = element_line(),
+    axis.ticks.length = unit(.1, "cm"), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.text.x = element_text(size = 6)
+  )  
+toplo <- filter(lrg_mort, !is.na(mort)) %>% 
+  arrange(mort) %>% 
+  mutate(station_code = factor(station_code, levels = as.character(station_code)))
+p <- ggplot(toplo, aes(x = station_code, y = mort)) +
+  geom_bar(stat = 'identity') +
+  mythm + 
+  scale_y_continuous('average LCSA for large genera') + 
+  scale_x_discrete('Station')
+ggplotly()
+```
+
+*Frequency distribution of colony size* 
+
+```{r warning = F, message = F, fig.height = 4, fig.width = 8}
+# frequency distribution of colony sizes
+col_sz <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
+  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
+  group_by(station_code, ColonyID) %>% 
+  summarise(
+    rec = ifelse(any(csa < 0), 1, 0),
+    csa = sum(pmax(0, csa))
+  ) %>% 
+  group_by(station_code)
+tmp <- summarise(col_sz, tot = log(sum(csa, na.rm = T))) %>% 
+  .$tot %>% 
+  order
+col_sz <- ungroup(col_sz) %>% 
+  mutate(
+    station_code = as.character(station_code),
+    station_code = factor(station_code, levels = unique(station_code)[tmp])
+    ) %>% 
+  filter(!is.na(csa))
+
+p <- ggplot(col_sz, aes(x = station_code, y = csa, colour = factor(ColonyID))) + 
+  geom_bar(stat = 'identity') + 
+  mythm + 
+  theme(legend.position = 'none')
+ggplotly()
+```
+
 
