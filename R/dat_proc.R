@@ -3,6 +3,7 @@
 
 library(tidyverse)
 library(readxl)
+library(forcats)
 soure('R/funcs.R')
 
 # ######
@@ -77,17 +78,13 @@ crl_dem <- read.csv(
 
 # relative abundance
 rel_abu <- select(crl_dem, station_code, species_name, ColonyID) %>% 
-  group_by(station_code) %>% 
-  mutate(
-    abu = length(unique(ColonyID))
-  ) %>% 
-  group_by(station_code, species_name, abu) %>% 
+  group_by(station_code, species_name) %>% 
   summarise(
     spp_abu = length(species_name)
   ) %>% 
-  ungroup %>% 
+  group_by(station_code) %>% 
   mutate( 
-    rel_abu = spp_abu/abu
+    rel_abu = spp_abu/sum(spp_abu)
   )
 
 # coral cover 
@@ -133,11 +130,11 @@ col_sz <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew
   left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
   group_by(station_code, ColonyID) %>% 
   summarise(
-    rec = ifelse(any(csa < 0), 1, 0),
+    Recruits = factor(ifelse(any(csa < 0), 1, 0)),
     csa = sum(pmax(0, csa))
   ) %>% 
   group_by(station_code)
-tmp <- summarise(col_sz, tot = log(sum(csa, na.rm = T))) %>% 
+tmp <- summarise(col_sz, tot = sum(csa, na.rm = T)) %>% 
   .$tot %>% 
   order
 col_sz <- ungroup(col_sz) %>% 
@@ -145,9 +142,56 @@ col_sz <- ungroup(col_sz) %>%
     station_code = as.character(station_code),
     station_code = factor(station_code, levels = unique(station_code)[tmp])
     ) %>% 
-  filter(!is.na(csa))
+  filter(!is.na(csa)) %>% 
+  arrange(station_code, csa) %>%
+  unite('statcol', station_code, ColonyID, sep = '_', remove = F) %>% 
+  mutate(statcol = factor(statcol, levels = as.character(statcol)))
 
-ggplot(col_sz, aes(x = station_code, y = csa, colour = factor(ColonyID))) + 
-  geom_bar(stat = 'identity') + 
-  # scale_y_continuous(trans = 'log') +
-  theme(legend.position = 'none')
+# diversity of rare/sens species
+senssp <- c('^Eusmilia|^Isophyllastrea|^Isophyllia|^Mycetophyllia|^Scolymia')
+sens <- group_by(rel_abu, station_code) %>% 
+  summarise(
+    rich = sum(grepl(senssp, species_name)),
+    rel_abu = sum(rel_abu[grepl(senssp, species_name)]),
+    div = diversity(spp_abu[grepl(senssp, species_name)])
+  )
+
+# sick - disease, bleaching
+sick <- select(crl_dem, station_code, species_name, Bleached, Diseased) %>% 
+  mutate(
+    Bleached = factor(Bleached), 
+    Bleached = fct_recode(Bleached,
+      'NA' = 'N/A', 
+      '1' = 'T', 
+      '0.5' = 'P',
+      '0' = 'N'
+    ), 
+    Bleached = as.numeric(as.character(Bleached)),
+    Diseased = factor(Diseased),
+    Diseased = fct_recode(Diseased, 
+      'NA' = 'N/A',
+      '1' = 'P', 
+      '0' = 'A'
+    ), 
+    Diseased = as.numeric(as.character(Diseased))
+  ) %>% 
+  group_by(station_code) %>% 
+  summarise(
+    Bleached = sum(Bleached, na.rm = T)/length(Bleached), 
+    Diseased = sum(Diseased, na.rm = T)/length(Diseased) 
+  )
+    
+# dominance of orbicella, acropora
+gens <- '^Acropora|^Orbicella'
+acrorb_abu <- summarise(rel_abu,
+  rel_abu = sum(rel_abu[grepl(gens, species_name)])
+  )
+acrorb_csa <- mutate(csa, csa = ifelse(csa == -1, 0, csa)) %>% 
+  group_by(station_code) %>% 
+  summarise(
+    rel_csa = sum(csa[grepl(gens, species_name)]),
+    rel_csa = rel_csa/sum(csa), 
+    rel_csa = ifelse(is.na(rel_csa), 0, rel_csa)
+    )
+acrorb <- full_join(acrorb_abu, acrorb_csa, by = 'station_code')
+  
