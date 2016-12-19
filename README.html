@@ -729,7 +729,7 @@ ggplotly()</code></pre>
 </div>
 <div id="dominance-of-orbicella-and-acropora" class="section level4">
 <h4>Dominance of <em>Orbicella</em> and <em>Acropora</em></h4>
-<p>Dominance of <em>Orbicella</em> and <em>Acropora</em> genera was assessed as the sum of relative abundances of species at each site. This metric also refers to structural dominance of the species so it was also assessed as the sum of the surface area of all species in the genera divided by the total.</p>
+<p>Dominance of <em>Orbicella</em> and <em>Acropora</em> genera was assessed as the sum of relative abundances of species at each site. This metric also refers to structural dominance of the species so it was also assessed as the sum of the surface area of all species in the genera divided by the total. test test</p>
 <pre class="r"><code>gens &lt;- '^Acropora|^Orbicella'
 acrorb_abu &lt;- summarise(rel_abu,
   rel_abu = sum(rel_abu[grepl(gens, species_name)])
