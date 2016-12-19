@@ -158,7 +158,7 @@ col_sz <- ungroup(col_sz) %>%
   filter(!is.na(csa)) %>% 
   arrange(station_code, csa) %>%
   unite('statcol', station_code, ColonyID, sep = '_', remove = F) %>% 
-  mutate(statcol = factor(statcol, levels = as.character(statcol)))
+  mutate(statcol = factor(statcol, levels = rev(as.character(statcol))))
 
 mythm <- theme_minimal() +
   theme(
@@ -172,7 +172,7 @@ mythm <- theme_minimal() +
     axis.text.x = element_text(size = 6)
   )  
 
-p <- ggplot(col_sz, aes(x = station_code, y = csa, group = factor(statcol), fill = Recruits)) + 
+p <- ggplot(col_sz, aes(x = station_code, y = csa, group = statcol, fill = Recruits)) + 
   geom_bar(stat = 'identity', colour = 'grey') + 
   mythm +
   theme(legend.position = 'top') + 
@@ -183,7 +183,7 @@ ggplotly()
 
 set.seed(123)
 tmp <- filter(col_sz, station_code %in% sample(station_code, 4))
-p <- ggplot(tmp, aes(x = station_code, y = csa, group = factor(statcol), fill = Recruits)) + 
+p <- ggplot(tmp, aes(x = station_code, y = csa, group = statcol, fill = Recruits)) + 
   geom_bar(stat = 'identity', position = 'dodge', colour = 'grey') + 
   mythm +
   theme(legend.position = 'top') + 
@@ -281,7 +281,7 @@ ggplotly()
 
 #### Dominance of *Orbicella* and *Acropora*
 
-Dominance of *Orbicella* and *Acropora* genera was assessed as the sum of relative abundances of species at each site. This metric also refers to structural dominance of the species so it was also assessed as the sum of the surface area of all species in the genera divided by the total. test test
+Dominance of *Orbicella* and *Acropora* genera was assessed as the sum of relative abundances of species at each site. This metric also refers to structural dominance of the species so it was also assessed as the sum of the surface area of all species in the genera divided by the total.
 
 ```{r warning = F, message = F, fig.height = 5, fig.width = 8}
 gens <- '^Acropora|^Orbicella'
