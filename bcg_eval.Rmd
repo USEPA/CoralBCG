@@ -37,8 +37,17 @@ $$
 CSA = 4 \cdot \pi \cdot {\left(diam / 2\right)}^2 
 $$
 
+Percent live cover was then estimated as:
+
+1. For each species, multiply the total surface area by the inverse of the mortality estimate
+$$
+LCSA = CSA \cdot \left(1 - \left(MortOld + MortNew\right)/100\right)
+$$
+2. For each colony, estimate the average LCSA across all species
+3. For each station, estimate the average LCSA across all colonies
+
 ```{r cache = T}
-# transect data
+# transect data 
 crl_dem <- read.csv(
   'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
   stringsAsFactors = F
