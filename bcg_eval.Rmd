@@ -18,6 +18,40 @@ source('R/funcs.R')
 
 ### Stony coral metrics
 
+#### Habitat distribution
+
+Habitat data are included in the coral demographic surveys for each species record (row), one type per station.  Habitat descriptions are AGRF (linear reef), BDRK (bedrock), PTRF (patch reef), PVMT (pavement), and SCR (scattered coral/rock in sand).
+
+```{r cache = T}
+# transect data 
+crl_dem <- read.csv(
+  'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
+  stringsAsFactors = F
+  ) %>%
+  select(station_code, latitude, longitude, habitat, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased)
+
+# habitat of each station (one per station)
+habs <- select(crl_dem, station_code, habitat) %>% 
+  group_by(station_code) %>% 
+  summarise(habitat = unique(habitat))
+
+mythm <- theme_minimal() +
+  theme(
+    legend.position = 'top', 
+    legend.title = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+    axis.ticks.x = element_line(),
+    axis.ticks.y = element_line(),
+    axis.ticks.length = unit(.1, "cm"), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank()
+  )  
+p <- ggplot(habs, aes(x = habitat)) + 
+  geom_bar(position = 'stack', stat = 'count') + 
+  mythm
+ggplotly()
+```
+
 #### Percent live cover
 
 This was estimated at each station as the average live cover of all colonies at a site.  The live cover of a colony was the sum of the estimated surface area of all species in a colony that was reported as percent live (reciprocal of the sum of new and old percent mortality).  Surface area of an individual in each colony at each site was estimated as follows:
@@ -47,13 +81,6 @@ $$
 3. For each station, estimate the average LCSA across all colonies
 
 ```{r cache = T}
-# transect data 
-crl_dem <- read.csv(
-  'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
-  stringsAsFactors = F
-  ) %>%
-  select(station_code, latitude, longitude, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased)
-
 # coral cover 
 csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, Height) %>% 
   group_by(station_code, species_name, ColonyID) %>% 
@@ -75,18 +102,6 @@ csa_live <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortN
 ```
 
 ```{r warning = F, message = F, fig.height = 4, fig.width = 8}
-mythm <- theme_minimal() +
-  theme(
-    legend.position = 'top', 
-    legend.title = element_blank(),
-    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
-    axis.ticks.x = element_line(),
-    axis.ticks.y = element_line(),
-    axis.ticks.length = unit(.1, "cm"), 
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank()
-  )  
-
 p <- ggplot(csa_live, aes(x = LCSA)) + 
   geom_histogram() + 
   mythm
