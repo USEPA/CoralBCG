@@ -24,11 +24,13 @@ Habitat data are included in the coral demographic surveys for each species reco
 
 ```{r cache = T}
 # transect data 
+# select relevant columns, remove milipora
 crl_dem <- read.csv(
   'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
   stringsAsFactors = F
   ) %>%
-  select(station_code, latitude, longitude, habitat, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased)
+  select(station_code, latitude, longitude, habitat, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased) %>% 
+  filter(!grepl('Millepora', species_name))
 
 # habitat of each station (one per station)
 habs <- select(crl_dem, station_code, habitat) %>% 
@@ -58,17 +60,12 @@ This was estimated at each station as the average live cover of all colonies at 
 
  1. Identify height, maximum diameter, and perpendicular diameter
  2. Convert maximum and perpendicular diameter to a single value as the diameter of a ciricle with the same area as an ellipse based on the major/minor axes
- 3. Use log-linear equations if species name is found in equation list, where list is from Table 3-3 in EPA/600/R-12/029 (Santavy et al. 2012, based on equations in Courtney et al. 2007) or Table J-2 in EPA/600/R-13/350 (Bradley et al. 2014 for Gorgonians).  
- 4. Use morphological conversion factors if species name is not found in equation list, where conversion factors are based on Table J-1 in EPA/600/R-13/350 (same as Table 3-2 in EPA/600/R-12/029) and the equation 
+ 3. Use morphological conversion factors if species name is not found in equation list, where conversion factors are based on Table J-1 in EPA/600/R-13/350 (same as Table 3-2 in EPA/600/R-12/029) and the equation 
 $$
 CSA = \pi \cdot r^2 \cdot M 
 $$
 $$
 r = \frac{height + diam/2}{2}
-$$
-5. If species name is not in equation list and no conversion factor is found, assume the coral is spherical and surface area is estimated as:
-$$
-CSA = 4 \cdot \pi \cdot {\left(diam / 2\right)}^2 
 $$
 
 Percent live cover was then estimated as:
@@ -83,20 +80,19 @@ $$
 ```{r cache = T}
 # coral cover 
 csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, Height) %>% 
-  group_by(station_code, species_name, ColonyID) %>% 
   mutate(
-    csa = ifelse(MaxDiam != -1, est_3d(species_name, Height, MaxDiam, PerpDiam), -1)
+    csa = est_3d(species_name, Height, MaxDiam, PerpDiam)
   ) %>% 
-  ungroup %>% 
   select(station_code, species_name, ColonyID, csa)
 
 # coral live surface area
 csa_live <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
   left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
   group_by(station_code, species_name, ColonyID) %>% 
-  mutate(LCSA = ifelse(csa != -1, csa * (1 - sum(MortOld + MortNew) / 100), -1)) %>% 
+  filter(!is.na(csa)) %>% 
+  mutate(LCSA = csa * (1 - sum(MortOld + MortNew) / 100)) %>% 
   group_by(station_code, ColonyID) %>% 
-  summarise(LCSA = sum(pmax(0, LCSA)) / sum(pmax(0, csa))) %>% 
+  summarise(LCSA = sum(LCSA, na.rm = T) / sum(csa, na.rm = T)) %>% 
   group_by(station_code) %>% 
   summarise(LCSA = sum(LCSA) / length(unique(ColonyID)))
 ```
@@ -121,8 +117,7 @@ mythm <- theme_minimal() +
     panel.grid.minor = element_blank(), 
     axis.text.x = element_text(size = 6)
   )  
-toplo <- filter(csa_live, !is.na(LCSA)) %>% 
-  arrange(LCSA) %>% 
+toplo <- arrange(csa_live, LCSA) %>% 
   mutate(station_code = factor(station_code, levels = as.character(station_code)))
 p <- ggplot(toplo, aes(x = station_code, y = LCSA)) +
   geom_bar(stat = 'identity') +
@@ -140,7 +135,7 @@ Mortality of large reef-building genera (*Acropora*, *Colpophyllia*, *Dendrogrya
 lrg_mort<- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
   left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
   group_by(station_code, species_name, ColonyID) %>% 
-  filter(csa != -1) %>% 
+  filter(!is.na(csa)) %>% 
   mutate(
     LCSA = csa * (1 - MortNew / 100),
     lrg_sp = ifelse(grepl('^Acropora|^Colpophyllia|^Dendrogyra|^Orbicella|^Pseudodiploria', species_name), 1, 0)
@@ -318,7 +313,7 @@ gens <- '^Acropora|^Orbicella'
 acrorb_abu <- summarise(rel_abu,
   rel_abu = sum(rel_abu[grepl(gens, species_name)])
   )
-acrorb_csa <- mutate(csa, csa = ifelse(csa == -1, 0, csa)) %>% 
+acrorb_csa <- mutate(csa, csa = ifelse(is.na(csa), 0, csa)) %>% 
   group_by(station_code) %>% 
   summarise(
     rel_csa = sum(csa[grepl(gens, species_name)]),
