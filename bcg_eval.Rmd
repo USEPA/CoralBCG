@@ -89,7 +89,7 @@ csa <- select(crl_dem, station_code, species_name, ColonyID, MaxDiam, PerpDiam, 
 csa_live <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
   left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
   group_by(station_code, species_name, ColonyID) %>% 
-  filter(!is.na(csa)) %>% 
+  filter(!is.na(csa) & csa > -1) %>% 
   mutate(LCSA = csa * (1 - sum(MortOld + MortNew) / 100)) %>% 
   group_by(station_code, ColonyID) %>% 
   summarise(LCSA = sum(LCSA, na.rm = T) / sum(csa, na.rm = T)) %>% 
@@ -131,11 +131,11 @@ ggplotly()
 Mortality of large reef-building genera (*Acropora*, *Colpophyllia*, *Dendrogrya*, *Orbicella*, *Pseudodiploria*) was estimated as the average recent mortality at the site for all individuals within the genera. This value is reported as the average percent live surface area and was estimated similarly as above, except the estimates are averages of all individuals and not per colony.  Note that some sites did not include these genera. The table below shows sites where recent mortality was observed.   
 
 ```{r cache = T, message = F}
-# coral live surface area, colony averages by site
+# mortality of large reef-building corals
 lrg_mort<- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
   left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
   group_by(station_code, species_name, ColonyID) %>% 
-  filter(!is.na(csa)) %>% 
+  filter(!is.na(csa) & csa > 0) %>% 
   mutate(
     LCSA = csa * (1 - MortNew / 100),
     lrg_sp = ifelse(grepl('^Acropora|^Colpophyllia|^Dendrogyra|^Orbicella|^Pseudodiploria', species_name), 1, 0)
@@ -167,6 +167,7 @@ This describes the variation in colony sizes at a site, where sites with higher 
 col_sz <- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
   left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
   group_by(station_code, ColonyID) %>% 
+  filter(!is.na(csa)) %>% 
   summarise(
     Recruits = factor(ifelse(any(csa < 0), 1, 0)),
     csa = sum(pmax(0, csa))
@@ -313,7 +314,8 @@ gens <- '^Acropora|^Orbicella'
 acrorb_abu <- summarise(rel_abu,
   rel_abu = sum(rel_abu[grepl(gens, species_name)])
   )
-acrorb_csa <- mutate(csa, csa = ifelse(is.na(csa), 0, csa)) %>% 
+acrorb_csa <- filter(csa, !is.na(csa)) %>% 
+  mutate(csa = ifelse(csa == -1, 0, csa)) %>% 
   group_by(station_code) %>% 
   summarise(
     rel_csa = sum(csa[grepl(gens, species_name)]),
