@@ -1,4 +1,4 @@
-# get stony coral metrics
+# get stony coral metrics, combines all functions below
 #
 # dat_in raw coral demographic data
 # rems chr string of species to remove, used to remove stations with no coral
@@ -216,10 +216,13 @@ get_tot_div <- function(dat_in){
   # get relative abundance of all
   rel_abu <- get_rel_abu(dat_in)
   
+  # 'official' species list
+  data(conv)
+  
   # get rel_abu of sens/rare
   out <- group_by(rel_abu, station_code) %>% 
     summarise(
-      tot_rich = length(species_name),
+      tot_rich = sum(species_name %in% conv$spec),
       tot_div = vegan::diversity(spp_abu)
     ) %>% 
     gather('var', 'val', -station_code) %>% 

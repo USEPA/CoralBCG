@@ -81,7 +81,6 @@ $$
 3. For each station, estimate the average LCSA across all colonies
 
 ```{r warning = F, message = F, fig.height = 4, fig.width = 8}
-
 # hist of lcsa
 p <- ggplot(crl_met, aes(x = lcsa)) + 
   geom_histogram() + 
@@ -172,7 +171,8 @@ where i of n species are observed and p_i is the proportional abundance of each.
 
 ```{r warning = F, message = F, fig.height = 3, fig.width = 8}
 # summary table for those with sens species
-totab <- filter(crl_met, sr_rich > 0) %>% 
+totab <- select(crl_met, station_code, sr_rich, sr_rel_abu, sr_div) %>% 
+  filter(sr_rich > 0) %>% 
   rename(
     Station = station_code, 
     Richness = sr_rich, 
