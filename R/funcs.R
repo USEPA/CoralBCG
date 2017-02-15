@@ -4,6 +4,11 @@
 # rems chr string of species to remove, used to remove stations with no coral
 get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
   
+  # station master keys
+  station_code <- dat_in$station_code %>% 
+    unique %>% 
+    sort
+  
   # 3d surface area of each species
   crl_dat <- crl_dem %>% 
     mutate(
@@ -20,18 +25,21 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
       crl_dat <- filter(crl_dat, !grepl(rems, species_name))
       
   }
-
+  
+  # total richness/diversity
+  tot_div <- get_tot_div(crl_dat)
+  
   # percent live cover
   lcsa <- get_lcsa(crl_dat)
   
   # mortality of large reef-building genera
   lrg_mort <- get_lrg_mort(crl_dat)
   
-  # frequency distribution of colony sizes
-  col_sz <- get_col_sz(crl_dat)
+  # # frequency distribution of colony sizes
+  # col_sz <- get_col_sz(crl_dat)
   
-  # diversity of sensitive and rate species
-  sens_rare <- get_sens_rare(crl_dat)
+  # diversity of sensitive and rare species
+  sr <- get_sr_div(crl_dat)
   
   # prportion of individuals as diseased or bleached
   sick <- get_sick(crl_dat)
@@ -39,9 +47,11 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
   #  dominance of acropora/orbicella
   acrorb <- get_acrorb(crl_dat)
 
-  browser()
-  # combine
-  NULL
+  # combine, back to wide
+  out <- rbind(tot_div, lcsa, lrg_mort, sr, sick, acrorb) %>% 
+    spread(var, val)
+  
+  return(out)
   
 }
 
@@ -122,11 +132,12 @@ get_lcsa <- function(dat_in){
   out <- select(dat_in, station_code, species_name, ColonyID, MortOld, MortNew, csa) %>% 
     group_by(station_code, species_name, ColonyID) %>% 
     filter(!is.na(csa) & csa > -1) %>% 
-    mutate(LCSA = csa * (1 - sum(MortOld + MortNew) / 100)) %>% 
+    mutate(lcsa = csa * (1 - sum(MortOld + MortNew) / 100)) %>% 
     group_by(station_code, ColonyID) %>% 
-    summarise(LCSA = sum(LCSA, na.rm = T) / sum(csa, na.rm = T)) %>% 
+    summarise(lcsa = sum(lcsa, na.rm = T) / sum(csa, na.rm = T)) %>% 
     group_by(station_code) %>% 
-    summarise(LCSA = sum(LCSA) / length(unique(ColonyID))) %>% 
+    summarise(lcsa = sum(lcsa) / length(unique(ColonyID))) %>% 
+    gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)
   
   return(out)
@@ -154,16 +165,17 @@ get_lrg_mort <- function(dat_in, gen = c('Acropora', 'Colpophyllia', 'Dendrogyra
     group_by(station_code, species_name, ColonyID) %>% 
     filter(!is.na(csa) & csa > 0) %>% 
     mutate(
-      LCSA = csa * (1 - MortNew / 100),
-      lrg_sp = ifelse(grepl(gen, species_name), 1, 0)
+      lcsa = csa * (1 - MortNew / 100),
+      lrg_pa = ifelse(grepl(gen, species_name), 1, 0)
       ) %>% 
-    group_by(station_code, lrg_sp) %>% 
+    group_by(station_code) %>% 
     summarize(
-      mort = mean(LCSA/csa)
+      lrg_rich = length(unique(species_name[lrg_pa ==1])),
+      lrg_mort = 1 - mean(lcsa[lrg_pa == 1]/csa[lrg_pa == 1]),
+      lrg_mort = ifelse(is.nan(lrg_mort), NA, lrg_mort)
     ) %>% 
     ungroup %>% 
-    complete(station_code, lrg_sp) %>% 
-    filter(lrg_sp == 1) %>% 
+    gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)
   
   return(out)
@@ -194,6 +206,29 @@ get_col_sz <- function(dat_in){
   
 }
 
+# diversity of all species
+#
+# dat_in coral demographic data, does not need estimated surface area
+#
+# returns data frame with one row per station, total richness, and estimated diversity for all species
+get_tot_div <- function(dat_in){
+  
+  # get relative abundance of all
+  rel_abu <- get_rel_abu(dat_in)
+  
+  # get rel_abu of sens/rare
+  out <- group_by(rel_abu, station_code) %>% 
+    summarise(
+      tot_rich = length(species_name),
+      tot_div = vegan::diversity(spp_abu)
+    ) %>% 
+    gather('var', 'val', -station_code) %>% 
+    data.frame(., stringsAsFactors = FALSE)
+
+  return(out)
+  
+}
+
 
 # diversity of sensitive rare species
 #
@@ -201,7 +236,7 @@ get_col_sz <- function(dat_in){
 # gen chr string of genera for sensitive/rare species
 #
 # returns data frame with one row per station, richness of sens/rare species, relative abundance of sense/rare species, and estimated diversity
-get_sens_rare <- function(dat_in, gen = c('Eusmilia', 'Isophyllastrea', 'Isophyllia', 'Mycetophyllia', 'Scolymia')){
+get_sr_div <- function(dat_in, gen = c('Eusmilia', 'Isophyllastrea', 'Isophyllia', 'Mycetophyllia', 'Scolymia')){
   
   # get relative abundance of all
   rel_abu <- get_rel_abu(dat_in)
@@ -213,10 +248,11 @@ get_sens_rare <- function(dat_in, gen = c('Eusmilia', 'Isophyllastrea', 'Isophyl
   # get rel_abu of sens/rare
   out <- group_by(rel_abu, station_code) %>% 
     summarise(
-      rich = sum(grepl(gen, species_name)),
-      rel_abu = sum(rel_abu[grepl(gen, species_name)]),
-      div = vegan::diversity(spp_abu[grepl(gen, species_name)])
+      sr_rich = sum(grepl(gen, species_name)),
+      sr_rel_abu = sum(rel_abu[grepl(gen, species_name)]),
+      sr_div = vegan::diversity(spp_abu[grepl(gen, species_name)])
     ) %>% 
+    gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)
 
   return(out)
@@ -233,26 +269,27 @@ get_sick <- function(dat_in){
   out <- select(dat_in, station_code, species_name, Bleached, Diseased) %>% 
     mutate(
       Bleached = factor(Bleached), 
-      Bleached = fct_recode(Bleached,
+      Bleached = suppressWarnings(fct_recode(Bleached,
         'NA' = 'N/A', 
         '1' = 'T', 
         '0.5' = 'P',
         '0' = 'N'
-      ), 
+      )), 
       Bleached = suppressWarnings(as.numeric(as.character(Bleached))),
       Diseased = factor(Diseased),
-      Diseased = fct_recode(Diseased, 
+      Diseased = suppressWarnings(fct_recode(Diseased, 
         'NA' = 'N/A',
         '1' = 'P', 
         '0' = 'A'
-      ), 
+      )), 
       Diseased = suppressWarnings(as.numeric(as.character(Diseased)))
     ) %>% 
     group_by(station_code) %>% 
     summarise(
-      Bleached = sum(Bleached, na.rm = T)/length(Bleached), 
-      Diseased = sum(Diseased, na.rm = T)/length(Diseased) 
+      bleached = sum(Bleached, na.rm = T)/length(Bleached), 
+      diseased = sum(Diseased, na.rm = T)/length(Diseased) 
     ) %>% 
+    gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)
   
   return(out)
@@ -281,7 +318,7 @@ get_acrorb <- function(dat_in, gen = c('Acropora', 'Orbicella')){
   # abundace of acrorb
   acrorb_abu <- group_by(rel_abu, station_code) %>% 
     summarise(
-      rel_abu = sum(rel_abu[grepl(gen, species_name)])
+      acrorb_rel_abu = sum(rel_abu[grepl(gen, species_name)])
     )
   
   # 3d surf area of acrorb
@@ -290,13 +327,14 @@ get_acrorb <- function(dat_in, gen = c('Acropora', 'Orbicella')){
     ) %>% 
     group_by(station_code) %>% 
     summarise(
-      rel_csa = sum(csa[grepl(gen, species_name)]),
-      rel_csa = rel_csa/sum(csa), 
-      rel_csa = ifelse(is.na(rel_csa), 0, rel_csa)
+      acrorb_csa = sum(csa[grepl(gen, species_name)]),
+      acrorb_csa = acrorb_csa/sum(csa), 
+      acrorb_csa = ifelse(is.na(acrorb_csa), 0, acrorb_csa)
       )
   
   # Join the two  
   out <- full_join(acrorb_abu, acrorb_csa, by = 'station_code') %>% 
+    gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)
   
   return(out)

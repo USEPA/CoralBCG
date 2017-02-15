@@ -32,6 +32,9 @@ crl_dem <- read.csv(
   select(station_code, latitude, longitude, habitat, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased) %>% 
   filter(!grepl('Millepora', species_name))
 
+# coral metrics
+crl_met <- get_stony_mets(crl_dem)
+
 # habitat of each station (one per station)
 habs <- select(crl_dem, station_code, habitat) %>% 
   group_by(station_code) %>% 
@@ -77,33 +80,21 @@ $$
 2. For each colony, estimate the average LCSA across all species
 3. For each station, estimate the average LCSA across all colonies
 
-```{r cache = T}
-
-```
-
 ```{r warning = F, message = F, fig.height = 4, fig.width = 8}
-p <- ggplot(csa_live, aes(x = LCSA)) + 
+
+# hist of lcsa
+p <- ggplot(crl_met, aes(x = lcsa)) + 
   geom_histogram() + 
   mythm
 ggplotly()
-```
 
-```{r warning = F, message = F, fig.height = 4, fig.width = 8}
-mythm <- theme_minimal() +
-  theme(
-    legend.position = 'top', 
-    legend.title = element_blank(),
-    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
-    axis.ticks.x = element_line(),
-    axis.ticks.y = element_line(),
-    axis.ticks.length = unit(.1, "cm"), 
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank(), 
-    axis.text.x = element_text(size = 6)
-  )  
-toplo <- arrange(csa_live, LCSA) %>% 
+mythm <- mythm + 
+  theme(axis.text.x = element_text(size = 5))
+
+# barplot of lcsa
+toplo <- arrange(crl_met, lcsa) %>% 
   mutate(station_code = factor(station_code, levels = as.character(station_code)))
-p <- ggplot(toplo, aes(x = station_code, y = LCSA)) +
+p <- ggplot(toplo, aes(x = station_code, y = lcsa)) +
   geom_bar(stat = 'identity') +
   mythm + 
   scale_x_discrete('Station')
@@ -115,29 +106,13 @@ ggplotly()
 Mortality of large reef-building genera (*Acropora*, *Colpophyllia*, *Dendrogrya*, *Orbicella*, *Pseudodiploria*) was estimated as the average recent mortality at the site for all individuals within the genera. This value is reported as the average percent live surface area and was estimated similarly as above, except the estimates are averages of all individuals and not per colony.  Note that some sites did not include these genera. The table below shows sites where recent mortality was observed.   
 
 ```{r cache = T, message = F}
-# mortality of large reef-building corals
-lrg_mort<- select(crl_dem, station_code, species_name, ColonyID, MortOld, MortNew) %>% 
-  left_join(., csa, by = c('station_code', 'species_name', 'ColonyID')) %>% 
-  group_by(station_code, species_name, ColonyID) %>% 
-  filter(!is.na(csa) & csa > 0) %>% 
-  mutate(
-    LCSA = csa * (1 - MortNew / 100),
-    lrg_sp = ifelse(grepl('^Acropora|^Colpophyllia|^Dendrogyra|^Orbicella|^Pseudodiploria', species_name), 1, 0)
-    ) %>% 
-  group_by(station_code, lrg_sp) %>% 
-  summarize(
-    mort = mean(LCSA/csa)
-  ) %>% 
-  ungroup %>% 
-  complete(station_code, lrg_sp) %>% 
-  filter(lrg_sp == 1)
-
-totab <- filter(lrg_mort, mort < 1) %>% 
-  arrange(mort) %>% 
+totab <- select(crl_met, station_code, lrg_mort, lrg_rich) %>% 
+  filter(lrg_mort > 0) %>% 
+  arrange(lrg_mort) %>% 
   rename(
     Station = station_code, 
-    `Large genera present` = lrg_sp, 
-    `Average LCSA for large genera` = mort
+    `Large species richness` = lrg_rich, 
+    `Average recent mortality` = lrg_mort
   )
 pander::pander(totab)
 ```
@@ -147,13 +122,17 @@ pander::pander(totab)
 This describes the variation in colony sizes at a site, where sites with higher BCG levels have a more even distribution of small to large colonies.  Presence of recruits is also taken into consideration for BCG quality.  The plot below shows the stations ranked from smallest to largest total colony size with bars stacked from smallest to largest colony at a station. The second plot shows an example for a subset of the stations.   
 
 ```{r warning = F, message = F, fig.height = 5, fig.width = 8}
-
-col_sz <- get_col_sz(crl_dat)
-tmp <- summarise(col_sz, tot = sum(csa, na.rm = T)) %>% 
+col_sz <- crl_dem %>% 
+  mutate(
+    csa = est_3d(species_name, Height, MaxDiam, PerpDiam)
+  ) %>% 
+  filter(!grepl('No Coral Observed', species_name)) %>% 
+  get_col_sz
+tmp <- group_by(col_sz, station_code) %>% 
+  summarise(tot = sum(csa, na.rm = T)) %>% 
   .$tot %>% 
   order
-col_sz <- ungroup(col_sz) %>% 
-  mutate(
+col_sz <- mutate(col_sz,
     station_code = as.character(station_code),
     station_code = factor(station_code, levels = unique(station_code)[tmp])
     ) %>% 
@@ -161,18 +140,6 @@ col_sz <- ungroup(col_sz) %>%
   arrange(station_code, csa) %>%
   unite('statcol', station_code, ColonyID, sep = '_', remove = F) %>% 
   mutate(statcol = factor(statcol, levels = as.character(statcol)))
-
-mythm <- theme_minimal() +
-  theme(
-    legend.position = 'top', 
-    panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
-    axis.ticks.x = element_line(),
-    axis.ticks.y = element_line(),
-    axis.ticks.length = unit(.1, "cm"), 
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank(), 
-    axis.text.x = element_text(size = 6)
-  )  
 
 p <- ggplot(col_sz, aes(x = station_code, y = csa, group = statcol, fill = Recruits)) + 
   geom_bar(stat = 'identity', colour = 'grey') + 
@@ -183,7 +150,7 @@ p <- ggplot(col_sz, aes(x = station_code, y = csa, group = statcol, fill = Recru
   
 ggplotly()
 
-set.seed(123)
+set.seed(127)
 tmp <- filter(col_sz, station_code %in% sample(station_code, 4))
 p <- ggplot(tmp, aes(x = station_code, y = csa, group = statcol, fill = Recruits)) + 
   geom_bar(stat = 'identity', position = 'dodge', colour = 'grey') + 
@@ -196,18 +163,21 @@ ggplotly()
 
 #### Sensitive and rare species
 
-This metric assesses the species composition and diversity of sensitive, rare species present (*Eusmilia*, *Isophyllastrea*, *Isophyllia*, *Mycetophyllia*, *Scolymia*) in the appropriate habitat type. The metric could be evaluated at each site as a richness estimate for the sensitive species, sum of the relative abundances, or as a diversity measure that accounts for both richness and abundance. Relative abundance was estimated as the number of observations for a species divided by the total number of observations. Diversity of sensitive species was estimated as Shannon diversity. Only sixteen stations had sensitive species.
+This metric assesses the species composition and diversity of sensitive, rare species present (*Eusmilia*, *Isophyllastrea*, *Isophyllia*, *Mycetophyllia*, *Scolymia*) in the appropriate habitat type. The metric could be evaluated at each site as a richness estimate for the sensitive species, sum of the relative abundances, or as a diversity measure that accounts for both richness and abundance. Relative abundance was estimated as the number of observations for a species divided by the total number of observations. Diversity of sensitive species was estimated as Shannon diversity:
+
+$$
+D = -\sum_{i = 1}^{n} p_i \cdot log\left(p_i\right) 
+$$
+where i of n species are observed and p_i is the proportional abundance of each.  Only sixteen stations had sensitive species.
 
 ```{r warning = F, message = F, fig.height = 3, fig.width = 8}
-
-
 # summary table for those with sens species
-totab <- filter(sens, rich > 0) %>% 
+totab <- filter(crl_met, sr_rich > 0) %>% 
   rename(
     Station = station_code, 
-    Richness = rich, 
-    `Relative abundance` = rel_abu, 
-    Diversity = div
+    Richness = sr_rich, 
+    `Relative abundance` = sr_rel_abu, 
+    Diversity = sr_div
     )
 pander::pander(totab)
 
@@ -225,11 +195,10 @@ ggplotly()
 Disease was recorded for individual corals as present/absence bleaching was recorded as absent, partial, and total. Both were summarized at each site as percent of individuals with disease or bleaching, i.e., sum of presence divided by total individuals.  Indidividuals with partial bleaching were assigned a value of 0.5.
 
 ```{r warning = F, message = F, fig.height = 5, fig.width = 8}
-
-toplo <- filter(sick, Diseased != 0 | Bleached != 0)  %>% 
-  arrange(Bleached) %>% 
+toplo <- filter(crl_met, diseased != 0 | bleached != 0)  %>% 
+  arrange(bleached) %>% 
   mutate(station_code = factor(station_code, levels = as.character(station_code))) %>% 
-  gather('var', 'val', Bleached:Diseased)
+  gather('var', 'val', bleached:diseased)
 
 p <- ggplot(toplo, aes(x = station_code, y = val)) + 
   geom_bar(stat = 'identity') + 
@@ -245,14 +214,12 @@ ggplotly()
 Dominance of *Orbicella* and *Acropora* genera was assessed as the sum of relative abundances of species at each site. This metric also refers to structural dominance of the species so it was also assessed as the sum of the surface area of all species in the genera divided by the total.
 
 ```{r warning = F, message = F, fig.height = 5, fig.width = 8}
-
-
-toplo <- filter(acrorb, rel_abu != 0 & rel_csa != 0) %>% 
-  arrange(rel_csa) %>% 
+toplo <- filter(crl_met, acrorb_rel_abu != 0 & acrorb_csa != 0) %>% 
+  arrange(acrorb_csa) %>% 
   mutate(station_code = factor(station_code, levels = as.character(station_code))) %>% 
   rename(
-    `Relative abundance` = rel_abu,
-    `Proportion CSA` = rel_csa
+    `Relative abundance` = acrorb_rel_abu,
+    `Proportion CSA` = acrorb_csa
   ) %>% 
   gather('var', 'val', `Relative abundance`:`Proportion CSA`)
 p <- ggplot(toplo, aes(x = station_code, y = val)) + 
