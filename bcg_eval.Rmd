@@ -22,12 +22,11 @@ source('R/funcs.R')
 
 Habitat data are included in the coral demographic surveys for each species record (row), one type per station.  Habitat descriptions are AGRF (linear reef), BDRK (bedrock), PTRF (patch reef), PVMT (pavement), and SCR (scattered coral/rock in sand).
 
-```{r cache = T}
+```{r cache = T, warning = F}
 # transect data 
 # select relevant columns, remove milipora
-crl_dem <- read.csv(
-  'L:/lab/Coral_EcoSystems/BCG/D. Data/NOAA Data/2014/Data/PR data/Gibbs 081716/NCRMP_PR2014_CoralDemo_FINAL.csv', 
-  stringsAsFactors = F
+crl_dem <- read_excel(
+  'L:/lab/Coral_EcoSystems/BCG/D. Data/1_NOAA Data/2014/Data/NCRMP_PR2014_CoralDemo_FINAL.xlsx'
   ) %>%
   select(station_code, latitude, longitude, habitat, species_name, ColonyID, MaxDiam, PerpDiam, Height, MortOld, MortNew, Bleached, Diseased) %>% 
   filter(!grepl('Millepora', species_name))
@@ -73,12 +72,14 @@ $$
 
 Percent live cover was then estimated as:
 
-1. For each species, multiply the total surface area by the inverse of the mortality estimate
+1. For each colony, multiply the total surface area by the inverse of the mortality estimate
 $$
 LCSA = CSA \cdot \left(1 - \left(MortOld + MortNew\right)/100\right)
 $$
-2. For each colony, estimate the average LCSA across all species
-3. For each station, estimate the average LCSA across all colonies
+2. For each station, total live percent cover is sum of live surface area for $i = 1$ to $n$ colonies, divided by the sum of total surface area for all colonies (note that this could be different information from the average of percent live surface area per colony)
+$$
+total \space LCSA = \frac{\sum_{i = 1}^n LCSA_i}{\sum_{i = 1}^n CSA_i}
+$$
 
 ```{r warning = F, message = F, fig.height = 4, fig.width = 8}
 # hist of lcsa
@@ -102,15 +103,15 @@ ggplotly()
 
 #### Mortality of large reef-building genera
 
-Mortality of large reef-building genera (*Acropora*, *Colpophyllia*, *Dendrogrya*, *Orbicella*, *Pseudodiploria*) was estimated as the average recent mortality at the site for all individuals within the genera. This value is reported as the average percent live surface area and was estimated similarly as above, except the estimates are averages of all individuals and not per colony.  Note that some sites did not include these genera. The table below shows sites where recent mortality was observed.   
+Mortality of large reef-building genera (*Acropora*, *Colpophyllia*, *Dendrogrya*, *Orbicella*, *Pseudodiploria*) was estimated as the average recent mortality at the site for all colonies/individuals within the genera. This value is reported as the average percent live surface area and was estimated similarly as above.  Note that some sites did not include these genera. The table below shows sites where recent mortality was observed.   
 
 ```{r cache = T, message = F}
-totab <- select(crl_met, station_code, lrg_mort, lrg_rich) %>% 
+totab <- select(crl_met, station_code, lrg_mort, lrg_abu) %>% 
   filter(lrg_mort > 0) %>% 
   arrange(lrg_mort) %>% 
   rename(
     Station = station_code, 
-    `Large species richness` = lrg_rich, 
+    `Large species abundance` = lrg_abu, 
     `Average recent mortality` = lrg_mort
   )
 pander::pander(totab)
@@ -118,7 +119,7 @@ pander::pander(totab)
 
 #### Frequency distribution of colony size
 
-This describes the variation in colony sizes at a site, where sites with higher BCG levels have a more even distribution of small to large colonies.  Presence of recruits is also taken into consideration for BCG quality.  The plot below shows the stations ranked from smallest to largest total colony size with bars stacked from smallest to largest colony at a station. The second plot shows an example for a subset of the stations.   
+This describes the variation in colony sizes at a site, where sites with higher BCG levels have a more even distribution of small to large colonies.  Presence of recruits is also taken into consideration for BCG quality (not shown in plots).  The plot below shows the stations ranked from smallest to largest total colony size with bars stacked from smallest to largest colony at a station. The second plot shows an example for a subset of the stations.   
 
 ```{r warning = F, message = F, fig.height = 5, fig.width = 8}
 col_sz <- crl_dem %>% 
@@ -126,21 +127,19 @@ col_sz <- crl_dem %>%
     csa = est_3d(species_name, Height, MaxDiam, PerpDiam)
   ) %>% 
   filter(!grepl('No Coral Observed', species_name)) %>% 
-  get_col_sz
+  get_col_sz %>% 
+  filter(Recruits == 0)
 tmp <- group_by(col_sz, station_code) %>% 
   summarise(tot = sum(csa, na.rm = T)) %>% 
-  .$tot %>% 
-  order
+  arrange(tot) %>% 
+  .$station_code %>% 
+  as.character
 col_sz <- mutate(col_sz,
     station_code = as.character(station_code),
-    station_code = factor(station_code, levels = unique(station_code)[tmp])
+    station_code = factor(station_code, levels = tmp)
     ) %>% 
-  filter(!is.na(csa)) %>% 
-  arrange(station_code, csa) %>%
-  unite('statcol', station_code, ColonyID, sep = '_', remove = F) %>% 
-  mutate(statcol = factor(statcol, levels = as.character(statcol)))
-
-p <- ggplot(col_sz, aes(x = station_code, y = csa, group = statcol, fill = Recruits)) + 
+  arrange(station_code, csa)
+p <- ggplot(col_sz, aes(x = station_code, y = csa)) + 
   geom_bar(stat = 'identity', colour = 'grey') + 
   mythm +
   theme(legend.position = 'top') + 
@@ -150,9 +149,17 @@ p <- ggplot(col_sz, aes(x = station_code, y = csa, group = statcol, fill = Recru
 ggplotly()
 
 set.seed(127)
-tmp <- filter(col_sz, station_code %in% sample(station_code, 4))
-p <- ggplot(tmp, aes(x = station_code, y = csa, group = statcol, fill = Recruits)) + 
-  geom_bar(stat = 'identity', position = 'dodge', colour = 'grey') + 
+tmp <- filter(col_sz, station_code %in% sample(station_code, 4)) %>% 
+  arrange(station_code, csa) %>%
+  mutate(
+    species_name = factor(species_name),
+    species_name = as.numeric(species_name)
+    ) %>%
+  unite('statcol', station_code:ColonyID, remove = F) %>% 
+  mutate(statcol = factor(statcol, levels = as.character(statcol)))
+
+p <- ggplot(tmp, aes(x = station_code, y = csa, group = statcol)) + 
+  geom_bar(stat = 'identity', colour = 'grey', position = 'dodge') + 
   mythm +
   theme(legend.position = 'top') + 
   scale_x_discrete('Station') + 

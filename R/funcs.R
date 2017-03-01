@@ -14,7 +14,7 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
     mutate(
       csa = est_3d(species_name, Height, MaxDiam, PerpDiam)
     ) 
-  
+
   # filter data to include sites with coral
   if(!is.null(rems)){
     
@@ -35,7 +35,7 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
   # mortality of large reef-building genera
   lrg_mort <- get_lrg_mort(crl_dat)
   
-  # # frequency distribution of colony sizes
+  # # # frequency distribution of colony sizes
   # col_sz <- get_col_sz(crl_dat)
   
   # diversity of sensitive and rare species
@@ -121,7 +121,7 @@ get_rel_abu <- function(dat_in){
 #
 # dat_in coral demographic data with esimated csa (from est_3d)
 #
-# returns data frame with one estimate per station
+# returns data frame with one estimate per station, which is 
 get_lcsa <- function(dat_in){
   
   # sanity check
@@ -133,10 +133,8 @@ get_lcsa <- function(dat_in){
     group_by(station_code, species_name, ColonyID) %>% 
     filter(!is.na(csa) & csa > -1) %>% 
     mutate(lcsa = csa * (1 - sum(MortOld + MortNew) / 100)) %>% 
-    group_by(station_code, ColonyID) %>% 
-    summarise(lcsa = sum(lcsa, na.rm = T) / sum(csa, na.rm = T)) %>% 
     group_by(station_code) %>% 
-    summarise(lcsa = sum(lcsa) / length(unique(ColonyID))) %>% 
+    summarise(lcsa = sum(lcsa, na.rm = T) / sum(csa, na.rm = T)) %>% 
     gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)
   
@@ -149,7 +147,7 @@ get_lcsa <- function(dat_in){
 # dat_in coral demographic data with esimated csa (from est_3d)
 # gen chr string of large genera
 #
-# returns data frame with counts of large genera and one estimate of mortality per station
+# returns data frame with counts of large genera (abundance as number of individuals/colonies) and one estimate of mortality per station
 get_lrg_mort <- function(dat_in, gen = c('Acropora', 'Colpophyllia', 'Dendrogyra', 'Orbicella', 'Pseudodiploria')){
   
   # sanity check
@@ -170,7 +168,7 @@ get_lrg_mort <- function(dat_in, gen = c('Acropora', 'Colpophyllia', 'Dendrogyra
       ) %>% 
     group_by(station_code) %>% 
     summarize(
-      lrg_rich = length(unique(species_name[lrg_pa ==1])),
+      lrg_abu = sum(lrg_pa),
       lrg_mort = 1 - mean(lcsa[lrg_pa == 1]/csa[lrg_pa == 1]),
       lrg_mort = ifelse(is.nan(lrg_mort), NA, lrg_mort)
     ) %>% 
@@ -194,12 +192,11 @@ get_col_sz <- function(dat_in){
     stop('csa must be in data, use est_3d function')
   
   out <- select(dat_in, station_code, species_name, ColonyID, MortOld, MortNew, csa) %>% 
-    group_by(station_code, ColonyID) %>% 
     filter(!is.na(csa)) %>% 
-    summarise(
-      Recruits = factor(ifelse(any(csa < 0), 1, 0)),
-      csa = sum(pmax(0, csa))
+    mutate(
+      Recruits = factor(ifelse(csa < 0, 1, 0))
     )  %>% 
+    select(station_code, species_name, ColonyID, csa, Recruits) %>% 
     data.frame(., stringsAsFactors = FALSE)
   
   return(out)
