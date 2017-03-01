@@ -1,11 +1,22 @@
-# README
+# coral_bcg: quantitative rules for the coral biological condition gradient
 Marcus W. Beck, beck.marcus@epa.gov  
 
-### Files
+This is the development repository for the coral_bcg package. Functions within this package can be used to estiamte quantitative rules for the coral biological condition gradient.
 
-**_data/_** Supporting RData files, usually from data in ignore folder, unless otherwise noted all files were created in `R/dat_proc.R`
+## Installing the package
 
-* `conv.RData` data frame with coral morphological conversion factors
+The development version of this package can be installed as follows:
 
-* `crl_abu.RData` USEPA 2011 coral demographic survey from PR
 
+```r
+install.packages('devtools')
+library(devtools)
+install_github('fawda123/coral_bcg')
+library(coral_bcg)
+```
+
+## Using the functions
+
+
+
+Forthcoming

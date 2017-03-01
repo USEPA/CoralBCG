@@ -1,0 +1,20 @@
+Package: coral_bcg
+Type: Package
+Title: Quantitative Rules for the Coral Biological Condition Gradient
+Version: 0.0.1.9000
+Date: 2017-03-01
+Author: Marcus W. Beck [aut, cre]
+Maintainer: Marcus W. Beck <beck.marcus@epa.gov>
+Description: Estimate quantitative rules for the coral biological condition gradient.
+BugReports: https://github.com/fawda123/coral_bcg/issues
+License: CC0
+Imports:
+    dplyr,
+    tidyr
+LazyData: true
+Depends:
+    R (>= 3.2.0)
+Authors@R: person(given = "Marcus W.", family = "Beck",
+    role = c("aut","cre"),
+    email = "beck.marcus@epa.gov")
+RoxygenNote: 5.0.1
