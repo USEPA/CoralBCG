@@ -2,3 +2,4 @@
 .Rhistory
 .RData
 ignore/*
+^data-raw$

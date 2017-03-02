@@ -1,4 +1,4 @@
-Package: coral_bcg
+Package: CoralBCG
 Type: Package
 Title: Quantitative Rules for the Coral Biological Condition Gradient
 Version: 0.0.1.9000
@@ -10,7 +10,8 @@ BugReports: https://github.com/fawda123/coral_bcg/issues
 License: CC0
 Imports:
     dplyr,
-    tidyr
+    tidyr, 
+    vegan
 LazyData: true
 Depends:
     R (>= 3.2.0)
