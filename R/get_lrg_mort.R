@@ -3,13 +3,15 @@
 #' @param dat_in coral demographic data with esimated csa (from \code{\link{est_3d}})
 #' @param gen chr string of large genera
 #'
-#' @return data frame with counts of large genera (abundance as number of individuals/colonies) and one estimate of mortality per station
+#' @return data frame with counts of large genera (abundance as number of individuals/colonies) and one estimate of mortality per station estimated as average of individual mortality from 0 - 1
 #' 
 #' @import dplyr tidyr
 #' 
 #' @export
 #'
 #' @examples
+#' crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+#' get_lrg_mort(crl_dem)
 get_lrg_mort <- function(dat_in, gen = c('Acropora', 'Colpophyllia', 'Dendrogyra', 'Orbicella', 'Pseudodiploria')){
   
   # sanity check

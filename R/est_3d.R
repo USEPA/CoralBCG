@@ -11,17 +11,16 @@
 #'  
 #' Uses size conversion equations from appendix J
 #' 
-#' @return The original data frame with coral surface area (csa) column 
+#' @return Vector of values with estimated surface area as cm2 for each species, -1 is juvenile
 #' 
 #' @import dplyr
 #' 
 #' @export
 #'
 #' @examples
+#' with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam)) 
 est_3d <- function(spp, h, d1, d2 = d1){
   
-  data(conv)
-
   # sanity check
   stopifnot(class(spp) %in% 'character')
   

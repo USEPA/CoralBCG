@@ -7,12 +7,16 @@
 get_lcsa(dat_in)
 }
 \arguments{
-\item{dat_in}{coral demographic data with esimated csa (from \code{\link{est_3d}})}
+\item{dat_in}{coral demographic data with estimated csa (from \code{\link{est_3d}})}
 }
 \value{
 data frame with one estimate per station
 }
 \description{
 Percent live coral at all stations
+}
+\examples{
+crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+get_lcsa(crl_dem)
 }
 

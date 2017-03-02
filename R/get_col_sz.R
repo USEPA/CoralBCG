@@ -9,6 +9,8 @@
 #' @export
 #'
 #' @examples
+#' crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+#' get_col_sz(crl_dem)
 get_col_sz <- function(dat_in){
   
   # sanity check

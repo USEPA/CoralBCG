@@ -21,4 +21,7 @@ Diversity of sensitive and rare species
 \details{
 diversity is estimated with \code{\link[vegan]{diversity}}
 }
+\examples{
+get_sr_div(crl_dem)
+}
 

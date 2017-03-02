@@ -12,6 +12,7 @@
 #' @export
 #'
 #' @examples
+#' get_stony_mets(crl_dem)
 get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
   
   # station master keys

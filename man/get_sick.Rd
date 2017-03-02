@@ -15,4 +15,7 @@ data frame of bleached or diseased proportion at each station
 \description{
 Get proportion of individuals at a station that are diseased or bleached
 }
+\examples{
+get_sick(crl_dem)
+}
 

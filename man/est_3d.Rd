@@ -16,7 +16,7 @@ est_3d(spp, h, d1, d2 = d1)
 \item{d2}{numeric of colony diameter (dm), diameter of minor axis if ellipse}
 }
 \value{
-The original data frame with coral surface area (csa) column
+Vector of values with estimated surface area as cm2 for each species, -1 is juvenile
 }
 \description{
 Estimate 3d surface area of a coral colony,
@@ -27,5 +27,8 @@ If both d1 and d2 are provided, they are converted to a single value for the dia
 NA values will be all values that do not match species in \code{\link{conv}}, juveniles marked as -1
  
 Uses size conversion equations from appendix J
+}
+\examples{
+with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam)) 
 }
 

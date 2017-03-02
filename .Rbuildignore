@@ -13,4 +13,3 @@ cran-comments.md
 appveyor.yml
 travis-tool.sh
 .travis.yml
-^data-raw$

@@ -15,4 +15,8 @@ data frame of station and colonies with indicator if recruits present and total 
 \description{
 Get colony size distributions
 }
+\examples{
+crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+get_col_sz(crl_dem)
+}
 

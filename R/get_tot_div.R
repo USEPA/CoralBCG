@@ -9,13 +9,11 @@
 #' @export
 #'
 #' @examples
+#' get_tot_div(crl_dem)
 get_tot_div <- function(dat_in){
   
   # get relative abundance of all
   rel_abu <- get_rel_abu(dat_in)
-  
-  # 'official' species list
-  data(conv)
   
   # get rel_abu of sens/rare
   out <- group_by(rel_abu, station_code) %>% 

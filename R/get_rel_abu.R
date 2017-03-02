@@ -11,6 +11,7 @@
 #' @export
 #'
 #' @examples
+#' get_rel_abu(crl_dem)
 get_rel_abu <- function(dat_in){
   
   # relative abundance

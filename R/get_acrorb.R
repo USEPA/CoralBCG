@@ -1,6 +1,6 @@
 #' Get dominance of acropora/orbicella genera
 #'
-#' @param dat_in coral demographic data, does not need estimated surface area
+#' @param dat_in coral demographic data with estimated csa (from \code{\link{est_3d}})
 #' @param gen chr string of genera for sensitive/rare species
 #'
 #' @return data frame of relative abundance and csa of the genera for all stations
@@ -10,8 +10,10 @@
 #' @export
 #'
 #' @examples
+#' crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+#' get_acrorb(crl_dem)
 get_acrorb <- function(dat_in, gen = c('Acropora', 'Orbicella')){
-
+  
   # sanity check
   if(!'csa' %in% names(dat_in))
     stop('csa must be in data, use est_3d function')

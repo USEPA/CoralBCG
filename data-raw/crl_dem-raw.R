@@ -1,3 +1,8 @@
+library(dplyr)
+library(readxl)
+
+set.seed(1234)
+
 # transect data 
 # select relevant columns, remove milipora, subset 5 random station, rename stations
 crl_dem <- read_excel(
@@ -9,7 +14,10 @@ crl_dem <- read_excel(
   mutate(
     station_code = factor(station_code), 
     station_code = factor(station_code, labels = sample(1:length(levels(station_code)))),
-    station_code = as.numeric(station_code)
-  )
+    station_code = as.numeric(station_code), 
+    Diseased = ifelse(Diseased %in% 'N/A', NA, Diseased),
+    Bleached = ifelse(Bleached %in% 'N/A', NA, Bleached)
+  ) %>% 
+  data.frame(stringsAsFactors = FALSE)
 
 save(crl_dem, file = 'data/crl_dem.RData', compress = 'xz')

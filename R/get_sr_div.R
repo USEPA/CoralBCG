@@ -12,6 +12,7 @@
 #' @export
 #'
 #' @examples
+#' get_sr_div(crl_dem)
 get_sr_div <- function(dat_in, gen = c('Eusmilia', 'Isophyllastrea', 'Isophyllia', 'Mycetophyllia', 'Scolymia')){
   
   # get relative abundance of all

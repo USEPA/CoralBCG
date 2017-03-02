@@ -15,4 +15,7 @@ data frame with one row per station, total richness, and estimated diversity for
 \description{
 Get total alpha diversity
 }
+\examples{
+get_tot_div(crl_dem)
+}
 

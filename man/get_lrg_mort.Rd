@@ -13,9 +13,13 @@ get_lrg_mort(dat_in, gen = c("Acropora", "Colpophyllia", "Dendrogyra",
 \item{gen}{chr string of large genera}
 }
 \value{
-data frame with counts of large genera (abundance as number of individuals/colonies) and one estimate of mortality per station
+data frame with counts of large genera (abundance as number of individuals/colonies) and one estimate of mortality per station estimated as average of individual mortality from 0 - 1
 }
 \description{
 Get mortality of large reef building genera
+}
+\examples{
+crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+get_lrg_mort(crl_dem)
 }
 

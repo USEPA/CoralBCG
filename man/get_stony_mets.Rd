@@ -17,4 +17,7 @@ Data frame of coral metrics with one row per station
 \description{
 Get all stony coral metrics
 }
+\examples{
+get_stony_mets(crl_dem)
+}
 

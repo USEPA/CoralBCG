@@ -1,6 +1,6 @@
 #' Percent live coral at all stations
 #'
-#' @param dat_in coral demographic data with esimated csa (from \code{\link{est_3d}})
+#' @param dat_in coral demographic data with estimated csa (from \code{\link{est_3d}})
 #'
 #' @return data frame with one estimate per station
 #' 
@@ -9,6 +9,8 @@
 #' @export
 #'
 #' @examples
+#' crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
+#' get_lcsa(crl_dem)
 get_lcsa <- function(dat_in){
   
   # sanity check

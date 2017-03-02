@@ -9,21 +9,20 @@
 #' @export
 #'
 #' @examples
+#' get_sick(crl_dem)
 get_sick <- function(dat_in){
   
   out <- select(dat_in, station_code, species_name, Bleached, Diseased) %>% 
     mutate(
       Bleached = factor(Bleached), 
-      Bleached = suppressWarnings(fct_recode(Bleached,
-        'NA' = 'N/A', 
+      Bleached = suppressWarnings(forcats::fct_recode(Bleached,
         '1' = 'T', 
         '0.5' = 'P',
         '0' = 'N'
       )), 
       Bleached = suppressWarnings(as.numeric(as.character(Bleached))),
       Diseased = factor(Diseased),
-      Diseased = suppressWarnings(fct_recode(Diseased, 
-        'NA' = 'N/A',
+      Diseased = suppressWarnings(forcats::fct_recode(Diseased, 
         '1' = 'P', 
         '0' = 'A'
       )), 
