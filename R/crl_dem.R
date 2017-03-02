@@ -10,8 +10,8 @@
 #'   \item{\code{MaxDiam}}{num colony diameter, cm}
 #'   \item{\code{PerpDiam}}{num perpendicular diameter cm}
 #'   \item{\code{Height}}{num height cm}
-#'   \item{\code{MortOld}}{num old mortality as a pecentage of total colony size}
-#'   \item{\code{MortNew}}{num recent mortality as a pecentage of total colony size}
+#'   \item{\code{MortOld}}{num old mortality as a percentage of total colony size, 0-100}
+#'   \item{\code{MortNew}}{num recent mortality as a percentage of total colony size, 0-100}
 #'   \item{\code{Bleached}}{chr qualifer for bleaching, T total, P partially bleached, N no bleaching}
 #'   \item{\code{Diseased}}{chr qualifier for disease, P present, A absent}
 #' }   
