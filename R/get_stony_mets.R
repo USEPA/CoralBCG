@@ -20,8 +20,11 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
     unique %>% 
     sort
   
+  # remove any trailing/leading spaces in species names
+  dat_in$species_name <- gsub('^\\s+|\\s+$', '', dat_in$species_name)
+
   # 3d surface area of each species
-  crl_dat <- crl_dem %>% 
+  crl_dat <- dat_in %>% 
     mutate(
       csa = est_3d(species_name, Height, MaxDiam, PerpDiam)
     ) 
@@ -35,6 +38,15 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
       
       crl_dat <- filter(crl_dat, !grepl(rems, species_name))
       
+  }
+
+  # check if all species found, warning if not
+  spp <- crl_dat$species_name %>% 
+    unique %>% 
+    sort
+  if(any(!spp %in% conv$spec)){
+    spp <- paste(spp[!spp %in% conv$spec], collapse = ', ')
+    warning(spp, ' not found')
   }
   
   # total richness/diversity

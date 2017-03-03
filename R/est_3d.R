@@ -28,7 +28,7 @@ est_3d <- function(spp, h, d1, d2 = d1){
   # only use if value is relevant
   d <- ifelse(d1 == -1, NA, sqrt(d1 * d2)) 
 
-  # use size conversions if not in estfun
+  # use size conversions
   csa <- data.frame(spec = spp, h = h, d = d, stringsAsFactors = FALSE) %>% 
     left_join(., conv, by = 'spec') %>% 
     rename(M = conv) %>% 
