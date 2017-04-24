@@ -58,8 +58,8 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
   # mortality of large reef-building genera
   lrg_mort <- get_lrg_mort(crl_dat)
   
-  # # frequency distribution of colony sizes
-  # col_sz <- get_col_sz(crl_dat)
+  # frequency distribution of colony sizes
+  col_sz <- get_col_sz(crl_dat)
   
   # diversity of sensitive and rare species
   sr <- get_sr_div(crl_dat)
@@ -71,7 +71,7 @@ get_stony_mets <- function(dat_in, rems = 'No Coral Observed'){
   acrorb <- get_acrorb(crl_dat)
 
   # combine, back to wide
-  out <- rbind(tot_div, lcsa, lrg_mort, sr, sick, acrorb) %>% 
+  out <- rbind(tot_div, lcsa, lrg_mort, col_sz, sr, sick, acrorb) %>% 
     spread(var, val)
   
   return(out)

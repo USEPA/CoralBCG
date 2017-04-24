@@ -100,7 +100,7 @@ ggplot(toplo, aes(x = station_code, y = lcsa)) +
 
 ![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
-#### Mortality of large reef-building genera
+### Mortality of large reef-building genera
 
 Mortality of large reef-building genera (*Acropora*, *Colpophyllia*, *Dendrogrya*, *Orbicella*, *Pseudodiploria*) was estimated as the average recent mortality at the site for all colonies/individuals within the genera. This value is reported as the average percent live surface area and was estimated similarly as above.
 
@@ -130,14 +130,14 @@ pander::pander(totab)
     1              0.01818                      11            
 --------------------------------------------------------------
 
-#### Frequency distribution of colony size
+### Frequency distribution of colony size
 
 This describes the variation in colony sizes at a site, where sites with higher BCG levels have a more even distribution of small to large colonies.  Presence of recruits is also taken into consideration for BCG quality (not shown in plots).  The plot below shows the stations with bars for smallest to largest colony at a station.
 
 
 ```r
 crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
-toplo <- get_col_sz(crl_dem) %>% 
+toplo <- get_col_sz(crl_dem, raw_out = T) %>% 
   arrange(station_code, csa) %>% 
   mutate(
     species_name = factor(species_name),
@@ -156,7 +156,26 @@ ggplot(toplo, aes(x = station_code, y = csa, group = statcol)) +
 
 ![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
-#### Sensitive and rare species
+```r
+# Size distribution spread
+get_col_sz(crl_dem)
+```
+
+```
+##    station_code      var      val
+## 1             1  sz_dist 2.891851
+## 2             2  sz_dist 2.845603
+## 3             3  sz_dist 3.721674
+## 4             4  sz_dist 2.159184
+## 5             5  sz_dist 2.101650
+## 6             1 Recruits 1.000000
+## 7             2 Recruits 0.000000
+## 8             3 Recruits 0.000000
+## 9             4 Recruits 0.000000
+## 10            5 Recruits 1.000000
+```
+
+### Sensitive and rare species
 
 This metric assesses the species composition and diversity of sensitive, rare species present (*Eusmilia*, *Isophyllastrea*, *Isophyllia*, *Mycetophyllia*, *Scolymia*) in the appropriate habitat type. The metric could be evaluated at each site as a richness estimate for the sensitive species, sum of the relative abundances, or as a diversity measure that accounts for both richness and abundance. Relative abundance was estimated as the number of observations for a species divided by the total number of observations. Diversity of sensitive species was estimated as Shannon diversity:
 
@@ -188,7 +207,7 @@ pander::pander(totab)
     3         1             0.0119             0     
 -----------------------------------------------------
 
-#### Disease, bleaching
+### Disease, bleaching
 
 Disease was recorded for individual corals as present/absence bleaching was recorded as absent, partial, and total. Both were summarized at each site as percent of individuals with disease or bleaching, i.e., sum of presence divided by total individuals.  Indidividuals with partial bleaching were assigned a value of 0.5.
 
@@ -209,7 +228,7 @@ ggplot(toplo, aes(x = station_code, y = val)) +
 
 ![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
-#### Dominance of *Orbicella* and *Acropora*
+### Dominance of *Orbicella* and *Acropora*
 
 Dominance of *Orbicella* and *Acropora* genera was assessed as the sum of relative abundances of species at each site. This metric also refers to structural dominance of the species so it was also assessed as the sum of the surface area of all species in the genera divided by the total.
 

@@ -2,7 +2,7 @@ Package: CoralBCG
 Type: Package
 Title: Quantitative Rules for the Coral Biological Condition Gradient
 Version: 0.0.1.9000
-Date: 2017-03-01
+Date: 2017-04-24
 Author: Marcus W. Beck [aut, cre]
 Maintainer: Marcus W. Beck <beck.marcus@epa.gov>
 Description: Estimate quantitative rules for the coral biological condition gradient.

@@ -4,16 +4,21 @@
 \alias{get_col_sz}
 \title{Get colony size distributions}
 \usage{
-get_col_sz(dat_in)
+get_col_sz(dat_in, raw_out = FALSE)
 }
 \arguments{
 \item{dat_in}{coral demographic data with esimated csa per species (from \code{\link{est_3d}})}
+
+\item{raw_out}{logical if raw data are returned as an abbreviated version of \code{dat_in}}
 }
 \value{
-data frame of station and colonies with indicator if recruits present and total csa (cm2)
+data frame of station, size distribution estimates, and number of colonies as recruits, long format
 }
 \description{
 Get colony size distributions
+}
+\details{
+Frequency distribution of colony sizes is summarized as a single value that takes into account the number of colonies and the relative sizes.  This is analogous to the standard Shannon-Wiener Diversity index for species abundance data.
 }
 \examples{
 crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
