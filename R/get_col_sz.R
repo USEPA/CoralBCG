@@ -39,7 +39,7 @@ get_col_sz <- function(dat_in, raw_out = FALSE){
     group_by(station_code) %>% 
     summarise(
       sz_dist = vegan::diversity(na.omit(csa)), 
-      Recruits = sum(Recruits, na.rm = TRUE)
+      recruits = sum(Recruits, na.rm = TRUE)
     ) %>% 
     gather('var', 'val', -station_code) %>% 
     data.frame(., stringsAsFactors = FALSE)

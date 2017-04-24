@@ -168,11 +168,11 @@ get_col_sz(crl_dem)
 ## 3             3  sz_dist 3.721674
 ## 4             4  sz_dist 2.159184
 ## 5             5  sz_dist 2.101650
-## 6             1 Recruits 1.000000
-## 7             2 Recruits 0.000000
-## 8             3 Recruits 0.000000
-## 9             4 Recruits 0.000000
-## 10            5 Recruits 1.000000
+## 6             1 recruits 1.000000
+## 7             2 recruits 0.000000
+## 8             3 recruits 0.000000
+## 9             4 recruits 0.000000
+## 10            5 recruits 1.000000
 ```
 
 ### Sensitive and rare species
