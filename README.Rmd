@@ -18,7 +18,7 @@ The development version of this package can be installed as follows:
 ```{r eval = FALSE}
 install.packages('devtools')
 library(devtools)
-install_github('fawda123/CoralBCG')
+install_github('USEPA/CoralBCG')
 library(CoralBCG)
 ```
 
