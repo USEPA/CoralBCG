@@ -16,7 +16,7 @@ split_mets(met_in, splt, bcgs, both = FALSE)
 \item{both}{logical if a \code{data.frame} is returned in long format that includes raw and bcg levels fore ach metric}
 }
 \value{
-A \code{data.frame} with metric values converted to BCG levels.  This will have the same dimensions as \code{met_in} unless \code{both = TRUE}.
+A \code{data.frame} with metric values converted to BCG levels.  This will have the same dimensions as \code{met_in} unless \code{both = TRUE}. \code{NA} values are returned for non-unique metrics.
 }
 \description{
 Split metrics into BCG levels for calibration
@@ -25,7 +25,6 @@ Split metrics into BCG levels for calibration
 The inputs for \code{splt} and {bcgs} are separate lists where each element is named as a metric in \code{met_in}.  Numeric values for for each elemene tin \code{splt} must be monotonic in the range from and including zero to one.  These values are converted to the scale of each metric for assigning BCG levels.  Numeric values in each element of \code{bcgs} are the BCG levels assigned to each split in \code{splt}, with total length of each element equal to the lenght of each element in \code{splt} - 1.
 }
 \examples{
-\dontrun{
 library(dplyr)
 
 # get metrics, number of metrics, and number of bcg levels
@@ -50,6 +49,5 @@ bcgs[, names(bcgs) \%in\% c('bleached', 'diseased')] <- seq(2, nbcgs + 1)
 bcgs <- as.list(bcgs)
 
 split_mets(met_in, splt = splt, bcgs = bcgs)
-}
 }
 

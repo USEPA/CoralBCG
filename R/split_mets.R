@@ -9,14 +9,13 @@
 #'
 #' @details The inputs for \code{splt} and {bcgs} are separate lists where each element is named as a metric in \code{met_in}.  Numeric values for for each elemene tin \code{splt} must be monotonic in the range from and including zero to one.  These values are converted to the scale of each metric for assigning BCG levels.  Numeric values in each element of \code{bcgs} are the BCG levels assigned to each split in \code{splt}, with total length of each element equal to the lenght of each element in \code{splt} - 1.    
 #' 
-#' @return A \code{data.frame} with metric values converted to BCG levels.  This will have the same dimensions as \code{met_in} unless \code{both = TRUE}.  
+#' @return A \code{data.frame} with metric values converted to BCG levels.  This will have the same dimensions as \code{met_in} unless \code{both = TRUE}. \code{NA} values are returned for non-unique metrics.  
 #' 
 #' @import dplyr
 #' 
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' library(dplyr)
 #' 
 #' # get metrics, number of metrics, and number of bcg levels
@@ -41,7 +40,6 @@
 #' bcgs <- as.list(bcgs)
 #' 
 #' split_mets(met_in, splt = splt, bcgs = bcgs)
-#' }
 split_mets <- function(met_in, splt, bcgs, both = FALSE){
   
   # put in long format, nest
@@ -78,8 +76,14 @@ split_mets <- function(met_in, splt, bcgs, both = FALSE){
       brks <- x$data.y[[1]]$val %>% 
         scales::rescale(rngs)
 
+      # step out if no unique values
+      if(length(unique(vals)) == 1) 
+        bcg <- rep(NA, length(vals))
+      else 
+        bcg <- cut(vals, breaks = brks, labels = bcgs, include.lowest = TRUE)
+
       # cut, assign bcg level
-      bcg <- cut(vals, breaks = brks, labels = bcgs, include.lowest = TRUE) %>% 
+      bcg <- bcg %>% 
         as.character %>%
         as.numeric %>% 
         data.frame(
@@ -92,7 +96,7 @@ split_mets <- function(met_in, splt, bcgs, both = FALSE){
     do.call('rbind', .) %>% 
     tibble::rownames_to_column(var = 'var') %>% 
     mutate(var = gsub('\\.[0-9]+', '', var))
-  
+
   # return raw and bcg levels if TRUE
   if(both) return(out)
 
