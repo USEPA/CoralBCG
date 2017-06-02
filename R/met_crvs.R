@@ -1,6 +1,6 @@
-#' Get probability distributions
+#' Get probability distribution curves
 #'
-#' Get probability distributions from raw metrics
+#' Get probability distribution curves from raw metrics for plotting
 #' 
 #' @param met_in input \code{data.frame} of coral metrics
 #' @param scr_in input \code{data.frame} of site BCG scores, see details
@@ -10,7 +10,7 @@
 #' 
 #' The density curves are based on maximum-likelihood estimates of the mean and standard deviation for a normal curve corresponding to the raw metric data at each BCG level.
 #' 
-#' @return A two-element list named \code{met_in} and \code{dests}, where the former is the joined input data with BCG scores in \code{scr_in} and the latter is estimated density curves from the raw distributions of each. 
+#' @return A two-element list named \code{met_in} and \code{crvs}, where the former is the joined input data with BCG scores in \code{scr_in} and the latter is estimated density curves from the raw distributions of each. 
 #'  
 #' @seealso \code{\link{plot_fuzz}}
 #' 
@@ -28,31 +28,25 @@
 #' scr <- c(2, 5, 3, 2, 4)
 #' scr_in <- data.frame(station_code, scr) 
 #' 
-#' # get probs
-#' get_probs(met_in, scr_in)
+#' # get curves
+#' met_crvs(met_in, scr_in)
 #' } 
-get_probs <- function(met_in, scr_in, n = 1000){
+met_crvs <- function(met_in, scr_in, n = 1000){
 
-  # station code matches for metrics and scores
-  mtch <- met_in$station_code %in% scr_in$station_code
-
-  # sanity checks
-  if(sum(mtch) == 0)
-    stop('No station_code matches between metrics and scores')
+  # get curve distrbiution estimates for each metric, bcg score
+  dists <- met_dist(met_in, scr_in)
+  met_in <- dists$met_in
+  pars <- dists$pars
   
-  # join bcg scores with metric data
-  met_in <- filter(met_in, mtch) %>% 
-    left_join(scr_in,  by = 'station_code') %>% 
-    gather('var', 'val', -station_code, -scr) 
-
   # get density function estimates for bcg levels within metrics
   # return data.frame in long format of probabilities of each metric
-  dests <- met_in %>% 
+  crvs <- met_in %>% 
     group_by(var) %>% 
     mutate(
       minv = min(val, na.rm = T), 
       maxv = max(val, na.rm = T)
       ) %>% 
+    left_join(., pars, by = c('var', 'scr')) %>% 
     group_by(var, scr) %>% 
     nest %>% 
     mutate(
@@ -61,9 +55,10 @@ get_probs <- function(met_in, scr_in, n = 1000){
         
         maxv <- unique(x$maxv)
         minv <- unique(x$minv)
-        ests <- MASS::fitdistr(x$val, 'normal')$estimate
+        mu <- unique(x$mu)
+        sd <- unique(x$sd)
         vals <- seq(minv, maxv, length = n)
-        out <- dnorm(vals, ests[1], ests[2]) %>% 
+        out <- dnorm(vals, mu, sd) %>% 
           data.frame(vals = vals, pr = .)
         
         return(out)
@@ -75,7 +70,7 @@ get_probs <- function(met_in, scr_in, n = 1000){
     mutate(pr = ifelse(is.infinite(pr), 0, pr))
   
   # output
-  out <- list(met_in = met_in, dests = dests)
+  out <- list(met_in = met_in, crvs = crvs)
   return(out)
   
 }

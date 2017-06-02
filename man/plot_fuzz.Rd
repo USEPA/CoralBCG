@@ -42,6 +42,6 @@ plot_fuzz(met_in, scr_in)
 }
 }
 \seealso{
-\code{\link{get_probs}}
+\code{\link{met_crvs}}, \code{\link{met_dist}}
 }
 

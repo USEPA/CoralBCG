@@ -12,7 +12,7 @@
 #'
 #' @return A \code{\link[ggplot2]{ggplot}} object
 #' 
-#' @seealso \code{\link{get_probs}}
+#' @seealso \code{\link{met_crvs}}, \code{\link{met_dist}}
 #' 
 #' @import dplyr ggplot2
 #' 
@@ -38,9 +38,9 @@ plot_fuzz <- function(met_in, scr_in, met, cols = 'Paired', widths = c(0.6, 1, 0
     stop('met not found')
   
   # get probabilites from metric distributions
-  probs <- get_probs(met_in, scr_in)
-  met_in <- probs$met_in
-  dests <- probs$dests
+  crvs <- met_crvs(met_in, scr_in)
+  met_in <- crvs$met_in
+  crvs<- crvs$crvs
   
   # unique bcg scores in data
   scrlev <- met_in$scr %>% 
@@ -55,7 +55,7 @@ plot_fuzz <- function(met_in, scr_in, met, cols = 'Paired', widths = c(0.6, 1, 0
   toplo1 <- filter(met_in, var %in% met)
   
   # density curves
-  toplo2 <- filter(dests, var %in% met)
+  toplo2 <- filter(crvs, var %in% met)
   
   # scaled density curves
   toplo3 <- toplo2 %>% 
