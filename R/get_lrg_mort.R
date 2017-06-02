@@ -5,7 +5,7 @@
 #'
 #' @return data frame with counts of large genera (abundance as number of individuals/colonies) and one estimate of mortality per station estimated as average of individual mortality from 0 - 1
 #' 
-#' @import dplyr tidyr
+#' @import dplyr
 #' 
 #' @export
 #'

@@ -22,7 +22,9 @@ A \code{data.frame} with metric values converted to BCG levels.  This will have 
 Split metrics into BCG levels for calibration
 }
 \details{
-The inputs for \code{splt} and {bcgs} are separate lists where each element is named as a metric in \code{met_in}.  Numeric values for for each elemene tin \code{splt} must be monotonic in the range from and including zero to one.  These values are converted to the scale of each metric for assigning BCG levels.  Numeric values in each element of \code{bcgs} are the BCG levels assigned to each split in \code{splt}, with total length of each element equal to the lenght of each element in \code{splt} - 1.
+The inputs for \code{splt} and {bcgs} are separate lists where each element is named as a metric in \code{met_in}.  Numeric values for for each elemene tin \code{splt} must be monotonic in the range from and including zero to one.  These values are converted to the scale of each metric for assigning BCG levels.  Numeric values in each element of \code{bcgs} are the BCG levels assigned to each split in \code{splt}, with total length of each element equal to the length of each element in \code{splt} - 1.    
+
+This is splitting into definite, crisp intervals (no fuzzy logic).
 }
 \examples{
 library(dplyr)

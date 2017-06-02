@@ -33,7 +33,7 @@ get_col_sz <- function(dat_in, raw_out = FALSE){
   if(raw_out) return(out)
 
   # summarise size distributions and recruits counts
-  out <- tidyr::gather(out, 'var', 'val', csa:Recruits) %>% 
+  out <- gather(out, 'var', 'val', csa:Recruits) %>% 
     filter(!(var %in% 'csa' & val == -1)) %>% 
     spread(var, val) %>% 
     group_by(station_code) %>% 

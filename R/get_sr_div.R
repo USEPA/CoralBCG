@@ -7,7 +7,7 @@
 #' 
 #' @details diversity is estimated with \code{\link[vegan]{diversity}}
 #' 
-#' @import dplyr tidyr
+#' @import dplyr
 #' 
 #' @export
 #'

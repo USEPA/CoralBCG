@@ -5,7 +5,7 @@
 #'
 #' @return data frame of relative abundance and csa of the genera for all stations
 #' 
-#' @import dplyr tidyr
+#' @import dplyr
 #' 
 #' @export
 #'

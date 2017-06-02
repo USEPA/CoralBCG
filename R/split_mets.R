@@ -7,7 +7,9 @@
 #' @param bcgs \code{list} of BCG levels for each metric
 #' @param both logical if a \code{data.frame} is returned in long format that includes raw and bcg levels fore ach metric
 #'
-#' @details The inputs for \code{splt} and {bcgs} are separate lists where each element is named as a metric in \code{met_in}.  Numeric values for for each elemene tin \code{splt} must be monotonic in the range from and including zero to one.  These values are converted to the scale of each metric for assigning BCG levels.  Numeric values in each element of \code{bcgs} are the BCG levels assigned to each split in \code{splt}, with total length of each element equal to the lenght of each element in \code{splt} - 1.    
+#' @details The inputs for \code{splt} and {bcgs} are separate lists where each element is named as a metric in \code{met_in}.  Numeric values for for each elemene tin \code{splt} must be monotonic in the range from and including zero to one.  These values are converted to the scale of each metric for assigning BCG levels.  Numeric values in each element of \code{bcgs} are the BCG levels assigned to each split in \code{splt}, with total length of each element equal to the length of each element in \code{splt} - 1.    
+#' 
+#' This is splitting into definite, crisp intervals (no fuzzy logic). 
 #' 
 #' @return A \code{data.frame} with metric values converted to BCG levels.  This will have the same dimensions as \code{met_in} unless \code{both = TRUE}. \code{NA} values are returned for non-unique metrics.  
 #' 
@@ -45,7 +47,7 @@ split_mets <- function(met_in, splt, bcgs, both = FALSE){
   # put in long format, nest
   tosplt <- gather(met_in, 'var', 'val', -station_code) %>% 
     group_by(var) %>% 
-    tidyr::nest()
+    nest()
 
   # make sure splt is correct 
   if(!any(names(splt) %in% tosplt$var))
@@ -53,15 +55,15 @@ split_mets <- function(met_in, splt, bcgs, both = FALSE){
 
   # put splt in long format, nest
   splt <- as.data.frame(splt) %>% 
-    tidyr::gather('var', 'val') %>% 
+    gather('var', 'val') %>% 
     group_by(var) %>% 
-    tidyr::nest()
+    nest()
   
   # put bcg in long format, nest
   bcgs <- as.data.frame(bcgs) %>% 
-    tidyr::gather('var', 'val') %>% 
+    gather('var', 'val') %>% 
     group_by(var) %>% 
-    tidyr::nest()
+    nest()
 
   # reassign metric values to bcg levels based on splts
   out <- left_join(tosplt, splt, by = 'var') %>% 
@@ -102,7 +104,7 @@ split_mets <- function(met_in, splt, bcgs, both = FALSE){
 
   # otherwise only bcg levels for metrics
   out <- select(out, -val) %>% 
-    tidyr::spread(var, bcg)
+    spread(var, bcg)
   
   return(out)
 

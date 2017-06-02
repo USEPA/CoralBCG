@@ -4,7 +4,7 @@
 #'
 #' @return data frame of bleached or diseased proportion at each station
 #' 
-#' @import dplyr tidyr
+#' @import dplyr
 #' 
 #' @export
 #'

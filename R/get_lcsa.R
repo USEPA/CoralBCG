@@ -4,7 +4,7 @@
 #'
 #' @return data frame with one estimate per station
 #' 
-#' @import dplyr tidyr
+#' @import dplyr
 #' 
 #' @export
 #'

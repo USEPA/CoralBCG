@@ -7,3 +7,6 @@ NULL
 
 #' @importFrom utils data
 NULL
+
+#' @importFrom tidyr gather nest spread unnest
+NULL
