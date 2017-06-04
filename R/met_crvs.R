@@ -33,7 +33,7 @@
 #' } 
 met_crvs <- function(met_in, scr_in, n = 1000){
 
-  # get curve distrbiution estimates for each metric, bcg score
+  # get curve distribution estimates for each metric, bcg score
   dists <- met_dist(met_in, scr_in)
   met_in <- dists$met_in
   pars <- dists$pars

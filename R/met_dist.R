@@ -9,8 +9,6 @@
 #' 
 #' BCG levels for each metric are based on the raw metric distributions for the a priori expert rankings of each site. Distributions for each metric at each level are recreated from normal distributions, where the mean and standard deviation of each distribution are based on maximum likelihoods estimates from the raw data. 
 #' 
-#' It is assumed that there is a 100\% chance a raw metric value can be assigned to one BCG level across the range of raw values. The probabilities across the range are based on scaled density functions of the raw metrics at each BCG level, where the density functions are scaled such that their sum is always equal to one.  See the plot from \code{\link{plot_fuzz}}. 
-#' 
 #' @return A two-element list named \code{met_in} and \code{pars}, where the former is the joined input data with BCG scores in \code{scr_in} and the latter is a \code{data.frame} with parameter (mean and standard deviation) estimates for each metric at each BCG level.
 #' 
 #' @import dplyr
