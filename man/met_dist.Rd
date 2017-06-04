@@ -4,7 +4,7 @@
 \alias{met_dist}
 \title{Get distribution estimates}
 \usage{
-met_dist(met_in, scr_in, n = 1000)
+met_dist(met_in, scr_in)
 }
 \arguments{
 \item{met_in}{input \code{data.frame} of coral metrics}

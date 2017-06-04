@@ -30,7 +30,7 @@
 #' # get levels
 #' met_dist(met_in, scr_in)
 #' } 
-met_dist <- function(met_in, scr_in, n = 1000){
+met_dist <- function(met_in, scr_in){
 
   # station code matches for metrics and scores
   mtch <- met_in$station_code %in% scr_in$station_code
