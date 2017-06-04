@@ -10,6 +10,7 @@ BugReports: https://github.com/fawda123/coral_bcg/issues
 License: CC0
 Imports:
     dplyr,
+    english,
     forcats,
     ggplot2,
     gridExtra,

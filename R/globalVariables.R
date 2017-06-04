@@ -9,5 +9,5 @@ NULL
 #' @importFrom utils data
 NULL
 
-#' @importFrom tidyr gather nest spread unnest
+#' @importFrom tidyr gather nest spread unite unnest
 NULL
