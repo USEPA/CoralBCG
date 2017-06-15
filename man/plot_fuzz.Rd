@@ -4,8 +4,8 @@
 \alias{plot_fuzz}
 \title{Plot fuzzy metrics}
 \usage{
-plot_fuzz(met_in, scr_in, met, cols = "Paired", widths = c(0.6, 1, 0.6,
-  0.6))
+plot_fuzz(met_in, scr_in, met, cols = "Paired", met_val = NULL,
+  widths = c(0.6, 1, 0.6, 0.6))
 }
 \arguments{
 \item{met_in}{input \code{data.frame} of coral metrics}
@@ -15,6 +15,8 @@ plot_fuzz(met_in, scr_in, met, cols = "Paired", widths = c(0.6, 1, 0.6,
 \item{met}{chr string of metric to plot}
 
 \item{cols}{chr string of palette for plot colors, from \code{\link[RColorBrewer]{brewer.pal}}}
+
+\item{met_val}{numeric value of metric to show on plot}
 
 \item{widths}{numeric vector indicating widths of each of four plots, passed to \code{\link[gridExtra]{grid.arrange}}}
 }
