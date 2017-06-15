@@ -67,13 +67,9 @@ $$
 Percent live cover at a station is then estimated as:
 
 1. For each colony, multiply the total surface area by the inverse of the mortality estimate
-$$
-LCSA = CSA \cdot \left(1 - \left(MortOld + MortNew\right)/100\right)
-$$
+$$LCSA = CSA \cdot \left(1 - \left(MortOld + MortNew\right)/100\right)$$
 2. For each station, total live percent cover is sum of live surface area for $i = 1$ to $n$ colonies, divided by the sum of total surface area for all colonies (note that this could be different information from the average of percent live surface area per colony)
-$$
-total \space LCSA = \frac{\sum_{i = 1}^n LCSA_i}{\sum_{i = 1}^n CSA_i}
-$$
+$$total \space LCSA = \frac{\sum_{i = 1}^n LCSA_i}{\sum_{i = 1}^n CSA_i}$$
 
 
 ```r
@@ -179,9 +175,7 @@ get_col_sz(crl_dem)
 
 This metric assesses the species composition and diversity of sensitive, rare species present (*Eusmilia*, *Isophyllastrea*, *Isophyllia*, *Mycetophyllia*, *Scolymia*) in the appropriate habitat type. The metric could be evaluated at each site as a richness estimate for the sensitive species, sum of the relative abundances, or as a diversity measure that accounts for both richness and abundance. Relative abundance was estimated as the number of observations for a species divided by the total number of observations. Diversity of sensitive species was estimated as Shannon diversity:
 
-$$
-D = -\sum_{i = 1}^{n} p_i \cdot log\left(p_i\right) 
-$$
+$$D = -\sum_{i = 1}^{n} p_i \cdot log\left(p_i\right)$$
 where i of n species are observed and p_i is the proportional abundance of each.  Only sixteen stations had sensitive species.
 
 
