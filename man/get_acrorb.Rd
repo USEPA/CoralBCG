@@ -21,4 +21,3 @@ Get dominance of acropora/orbicella genera
 crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
 get_acrorb(crl_dem)
 }
-

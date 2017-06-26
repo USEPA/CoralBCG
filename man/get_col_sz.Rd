@@ -24,4 +24,3 @@ Frequency distribution of colony sizes is summarized as a single value that take
 crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
 get_col_sz(crl_dem)
 }
-

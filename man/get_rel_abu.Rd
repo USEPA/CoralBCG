@@ -21,4 +21,3 @@ abundance is simply a count of species at a station
 \examples{
 get_rel_abu(crl_dem)
 }
-

@@ -18,4 +18,3 @@ Get total alpha diversity
 \examples{
 get_tot_div(crl_dem)
 }
-

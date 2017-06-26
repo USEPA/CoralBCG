@@ -4,7 +4,7 @@
 \alias{met_crvs}
 \title{Get probability distribution curves}
 \usage{
-met_crvs(met_in, scr_in, n = 1000)
+met_crvs(met_in, scr_in, n = 1000, sdchg = NULL)
 }
 \arguments{
 \item{met_in}{input \code{data.frame} of coral metrics}
@@ -12,6 +12,8 @@ met_crvs(met_in, scr_in, n = 1000)
 \item{scr_in}{input \code{data.frame} of site BCG scores, see details}
 
 \item{n}{numeric indicating number of values across the range for each metric to predict the density curves}
+
+\item{sdchg}{optional named list to manually change standard deviation estimates for each metric, see details}
 }
 \value{
 A two-element list named \code{met_in} and \code{crvs}, where the former is the joined input data with BCG scores in \code{scr_in} and the latter is estimated density curves from the raw distributions of each.
@@ -23,6 +25,8 @@ Get probability distribution curves from raw metrics for plotting
 The input \code{scr_in} data has two columns labelled \code{station_code} and \code{scr}. The station codes should match those in \code{met_in}. The \code{scr} values for each station can be numeric or character string BCG levels that represent qualitative rankings. 
 
 The density curves are based on maximum-likelihood estimates of the mean and standard deviation for a normal curve corresponding to the raw metric data at each BCG level.
+
+The distribution curves can be changed by manually entering standard deviation estimates for each metric and BCG score.  Ideally, standard deviation estimates should be derived from observations but these values could be manually changed to maximize accuracy of metric scores from expert assignments.  The standard deviation estimates can be manually changed using a named list for the element names correspond to one to many metrics and the elements for each is a numeric vector of the values to change (first is highest level, last is lowest).  See the examples.
 }
 \examples{
 \dontrun{
@@ -36,9 +40,12 @@ scr_in <- data.frame(station_code, scr)
 
 # get curves
 met_crvs(met_in, scr_in)
+
+# get curves with manual sd
+sdchg <- list(tot_rich = c(2, 2, 2, 2))
+met_crvs(met_in, scr_in, sdchg = sdchg)
 } 
 }
 \seealso{
 \code{\link{plot_fuzz}}
 }
-

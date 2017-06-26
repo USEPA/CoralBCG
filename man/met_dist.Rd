@@ -36,4 +36,3 @@ scr_in <- data.frame(station_code, scr)
 met_dist(met_in, scr_in)
 } 
 }
-

@@ -20,4 +20,3 @@ Get all stony coral metrics
 \examples{
 get_stony_mets(crl_dem)
 }
-

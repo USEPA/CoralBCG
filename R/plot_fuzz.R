@@ -7,6 +7,7 @@
 #' @param met chr string of metric to plot
 #' @param cols chr string of palette for plot colors, from \code{\link[RColorBrewer]{brewer.pal}}
 #' @param met_val numeric value of metric to show on plot
+#' @param sdchg optional list passed to \code{\link{met_crvs}} for manually changing standard deviation estimates
 #' @param widths numeric vector indicating widths of each of four plots, passed to \code{\link[gridExtra]{grid.arrange}}
 #' 
 #' @details The input \code{scr_in} data has two columns labelled \code{station_code} and \code{scr}. The station codes should match those in \code{met_in}. The \code{scr} values for each station can be numeric or character string BCG levels that represent qualitative rankings. 
@@ -30,9 +31,13 @@
 #' scr_in <- data.frame(station_code, scr) 
 #' 
 #' # plot
-#' plot_fuzz(met_in, scr_in)
+#' plot_fuzz(met_in, scr_in, met = 'tot_rich')
+#' 
+#' # plot, manual change of standard deviation
+#' sdchg <- list(tot_rich = c(2, 2, 2, 2))
+#' plot_fuzz(met_in, scr_in, met = 'tot_rich', sdchg = sdchg)
 #' }
-plot_fuzz <- function(met_in, scr_in, met, cols = 'Paired', met_val = NULL, widths = c(0.6, 1, 0.6, 0.6)){
+plot_fuzz <- function(met_in, scr_in, met, cols = 'Paired', met_val = NULL, sdchg = NULL, widths = c(0.6, 1, 0.6, 0.6)){
 
   ## sanity checks
   if(!(met %in% names(met_in)))
@@ -45,7 +50,7 @@ plot_fuzz <- function(met_in, scr_in, met, cols = 'Paired', met_val = NULL, widt
   }
   
   # get probabilites from metric distributions
-  crvs <- met_crvs(met_in, scr_in)
+  crvs <- met_crvs(met_in, scr_in, sdchg = sdchg)
   met_in <- crvs$met_in
   crvs<- crvs$crvs
   

@@ -52,4 +52,3 @@ bcgs <- as.list(bcgs)
 
 split_mets(met_in, splt = splt, bcgs = bcgs)
 }
-

@@ -5,7 +5,7 @@
 \title{Plot fuzzy metrics}
 \usage{
 plot_fuzz(met_in, scr_in, met, cols = "Paired", met_val = NULL,
-  widths = c(0.6, 1, 0.6, 0.6))
+  sdchg = NULL, widths = c(0.6, 1, 0.6, 0.6))
 }
 \arguments{
 \item{met_in}{input \code{data.frame} of coral metrics}
@@ -17,6 +17,8 @@ plot_fuzz(met_in, scr_in, met, cols = "Paired", met_val = NULL,
 \item{cols}{chr string of palette for plot colors, from \code{\link[RColorBrewer]{brewer.pal}}}
 
 \item{met_val}{numeric value of metric to show on plot}
+
+\item{sdchg}{optional list passed to \code{\link{met_crvs}} for manually changing standard deviation estimates}
 
 \item{widths}{numeric vector indicating widths of each of four plots, passed to \code{\link[gridExtra]{grid.arrange}}}
 }
@@ -40,10 +42,13 @@ scr <- c(2, 5, 3, 2, 4)
 scr_in <- data.frame(station_code, scr) 
 
 # plot
-plot_fuzz(met_in, scr_in)
+plot_fuzz(met_in, scr_in, met = 'tot_rich')
+
+# plot, manual change of standard deviation
+sdchg <- list(tot_rich = c(2, 2, 2, 2))
+plot_fuzz(met_in, scr_in, met = 'tot_rich', sdchg = sdchg)
 }
 }
 \seealso{
 \code{\link{met_crvs}}, \code{\link{met_dist}}
 }
-

@@ -31,4 +31,3 @@ Uses size conversion equations from appendix J
 \examples{
 with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam)) 
 }
-

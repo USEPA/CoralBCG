@@ -22,4 +22,3 @@ Get mortality of large reef building genera
 crl_dem$csa <- with(crl_dem, est_3d(species_name, Height, MaxDiam, PerpDiam))
 get_lrg_mort(crl_dem)
 }
-

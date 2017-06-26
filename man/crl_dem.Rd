@@ -24,4 +24,3 @@ crl_dem
 Data frame of coral demographic data with minimal data requirements for estimating stony coral metrics
 }
 \keyword{datasets}
-
